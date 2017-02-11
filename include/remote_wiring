@@ -1,0 +1,14 @@
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
+
+#ifndef REMOTE_WIRING
+#define REMOTE_WIRING
+
+#include "FirmataDevice.h"
+#include "RemoteDevice.h"
+#include "RwBoards.h"
+#include "RwConstants.h"
+#include "RwTypes.h"
+
+#endif  // REMOTE_WIRING
+
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
