@@ -6,6 +6,240 @@
 namespace remote_wiring {
 namespace boards {
 namespace arduino {
+namespace adafruit {
+namespace circuit_playground {
+
+static const size_t A0 = 18;
+static const size_t A1 = 19;
+static const size_t A2 = 20;
+static const size_t A3 = 21;
+static const size_t A4 = 22;
+static const size_t A5 = 23;
+static const size_t A6 = 24;
+static const size_t A7 = 25;
+static const size_t A8 = 26;
+static const size_t A9 = 27;
+static const size_t A10 = 28;
+static const size_t A11 = 29;
+
+static const size_t SS = 17;
+static const size_t MOSI = 16;
+static const size_t MISO = 14;
+static const size_t SCK = 15;
+
+static const size_t SDA = 2;
+static const size_t SCL = 3;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace circuit_playground
+
+namespace gemma {
+
+static const size_t A0 = 6;
+static const size_t A1 = 7;
+static const size_t A2 = 8;
+static const size_t A3 = 9;
+
+static const size_t LED_BUILTIN = 1;
+
+}  // namespace gemma
+}  // namespace adafruit
+
+namespace arduino101 {
+
+static const size_t A0 = 14;
+static const size_t A1 = 15;
+static const size_t A2 = 16;
+static const size_t A3 = 17;
+static const size_t A4 = 18;
+static const size_t A5 = 19;
+
+static const size_t SS = 10;
+static const size_t MOSI = 11;
+static const size_t MISO = 12;
+static const size_t SCK = 13;
+
+static const size_t SDA = 18;
+static const size_t SCL = 19;
+
+static const size_t LED_BUILTIN = 13;
+
+}
+
+namespace leonardo {
+
+static const size_t A0 = 18;
+static const size_t A1 = 19;
+static const size_t A2 = 20;
+static const size_t A3 = 21;
+static const size_t A4 = 22;
+static const size_t A5 = 23;
+static const size_t A6 = 24;
+static const size_t A7 = 25;
+static const size_t A8 = 26;
+static const size_t A9 = 27;
+static const size_t A10 = 28;
+static const size_t A11 = 29;
+
+static const size_t SS = 17;
+static const size_t MOSI = 16;
+static const size_t MISO = 14;
+static const size_t SCK = 15;
+
+static const size_t SDA = 2;
+static const size_t SCL = 3;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace leonardo
+
+namespace mega {
+
+static const size_t A0 = 54;
+static const size_t A1 = 55;
+static const size_t A2 = 56;
+static const size_t A3 = 57;
+static const size_t A4 = 58;
+static const size_t A5 = 59;
+static const size_t A6 = 60;
+static const size_t A7 = 61;
+static const size_t A8 = 62;
+static const size_t A9 = 63;
+static const size_t A10 = 64;
+static const size_t A11 = 65;
+static const size_t A12 = 66;
+static const size_t A13 = 67;
+static const size_t A14 = 68;
+static const size_t A15 = 69;
+
+static const size_t SS = 53;
+static const size_t MOSI = 51;
+static const size_t MISO = 50;
+static const size_t SCK = 52;
+
+static const size_t SDA = 20;
+static const size_t SCL = 21;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // mega
+
+namespace mini {
+
+static const size_t A0 = 18;
+static const size_t A1 = 19;
+static const size_t A2 = 20;
+static const size_t A3 = 21;
+static const size_t A4 = 22;
+static const size_t A5 = 23;
+static const size_t A6 = 24;
+static const size_t A7 = 25;
+static const size_t A8 = 26;
+static const size_t A9 = 27;
+static const size_t A10 = 28;
+static const size_t A11 = 29;
+
+static const size_t SS = 17;
+static const size_t MOSI = 16;
+static const size_t MISO = 14;
+static const size_t SCK = 15;
+
+static const size_t SDA = 2;
+static const size_t SCL = 3;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace mini
+
+namespace mkrzero {
+
+static const size_t A0 = 15;
+static const size_t A1 = 16;
+static const size_t A2 = 17;
+static const size_t A3 = 18;
+static const size_t A4 = 19;
+static const size_t A5 = 20;
+static const size_t A6 = 21;
+
+static const size_t SS = 4;
+static const size_t MOSI = 8;
+static const size_t MISO = 10;
+static const size_t SCK = 9;
+
+static const size_t SDA = 11;
+static const size_t SCL = 12;
+
+static const size_t LED_BUILTIN = 32;
+
+}  // namespace mkrzero
+
+namespace mkr1000 {
+
+static const size_t A0 = 15;
+static const size_t A1 = 16;
+static const size_t A2 = 17;
+static const size_t A3 = 18;
+static const size_t A4 = 19;
+static const size_t A5 = 20;
+static const size_t A6 = 21;
+
+static const size_t SS = 24;
+static const size_t MOSI = 8;
+static const size_t MISO = 10;
+static const size_t SCK = 9;
+
+static const size_t SDA = 11;
+static const size_t SCL = 12;
+
+static const size_t LED_BUILTIN = 6;
+
+}  // namespace mkr1000
+
+namespace m0 {
+
+static const size_t A0 = 24;
+static const size_t A1 = 25;
+static const size_t A2 = 26;
+static const size_t A3 = 27;
+static const size_t A4 = 28;
+static const size_t A5 = 29;
+
+static const size_t SS = 14;
+static const size_t MOSI = 21;
+static const size_t MISO = 18;
+static const size_t SCK = 20;
+
+static const size_t SDA = 16;
+static const size_t SCL = 17;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace m0
+
+namespace standard {
+
+static const size_t A0 = 14;
+static const size_t A1 = 15;
+static const size_t A2 = 16;
+static const size_t A3 = 17;
+static const size_t A4 = 18;
+static const size_t A5 = 19;
+static const size_t A6 = 20;
+static const size_t A7 = 21;
+
+static const size_t SS = 10;
+static const size_t MOSI = 11;
+static const size_t MISO = 12;
+static const size_t SCK = 13;
+
+static const size_t SDA = 18;
+static const size_t SCL = 19;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace standard
+
 namespace uno {
 
 // ATMEL ATMEGA8 & 168 / ARDUINO
@@ -48,6 +282,54 @@ static const size_t SCL = 19;
 static const size_t LED_BUILTIN = 13;
 
 }  // namespace uno
+
+namespace yun {
+
+static const size_t A0 = 18;
+static const size_t A1 = 19;
+static const size_t A2 = 20;
+static const size_t A3 = 21;
+static const size_t A4 = 22;
+static const size_t A5 = 23;
+static const size_t A6 = 24;
+static const size_t A7 = 25;
+static const size_t A8 = 26;
+static const size_t A9 = 27;
+static const size_t A10 = 28;
+static const size_t A11 = 29;
+
+static const size_t SS = 17;
+static const size_t MOSI = 16;
+static const size_t MISO = 14;
+static const size_t SCK = 15;
+
+static const size_t SDA = 2;
+static const size_t SCL = 3;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace yun
+
+namespace zero {
+
+static const size_t A0 = 14;
+static const size_t A1 = 15;
+static const size_t A2 = 16;
+static const size_t A3 = 17;
+static const size_t A4 = 18;
+static const size_t A5 = 19;
+
+static const size_t SS = 16;
+static const size_t MOSI = 23;
+static const size_t MISO = 22;
+static const size_t SCK = 24;
+
+static const size_t SDA = 20;
+static const size_t SCL = 21;
+
+static const size_t LED_BUILTIN = 13;
+
+}  // namespace mzero
 }  // namespace arduino
 
 namespace esp8266 {
@@ -320,7 +602,54 @@ static const size_t LED_BUILTIN = 2;
 
 }  // namespace wifio
 }  // namespace esp8266
+
 namespace particle {
+namespace core {
+
+static const size_t A0 = 10;
+static const size_t A1 = 11;
+static const size_t A2 = 12;
+static const size_t A3 = 13;
+static const size_t A4 = 14;
+static const size_t A5 = 15;
+static const size_t A6 = 16;
+static const size_t A7 = 17;
+
+static const size_t SS = 12;
+static const size_t MOSI = 15;
+static const size_t MISO = 14;
+static const size_t SCK = 13;
+
+static const size_t SDA = 0;
+static const size_t SCL = 1;
+
+static const size_t LED_BUILTIN = 7;
+
+}  // namespace core
+
+namespace electron {
+
+static const size_t A0 = 10;
+static const size_t A1 = 11;
+static const size_t A2 = 12;
+static const size_t A3 = 13;
+static const size_t A4 = 14;
+static const size_t A5 = 15;
+static const size_t A6 = 16;
+static const size_t A7 = 17;
+
+static const size_t SS = 12;
+static const size_t MOSI = 15;
+static const size_t MISO = 14;
+static const size_t SCK = 13;
+
+static const size_t SDA = 0;
+static const size_t SCL = 1;
+
+static const size_t LED_BUILTIN = 7;
+
+}  // namespace electron
+
 namespace photon {
 
 static const size_t A0 = 10;
