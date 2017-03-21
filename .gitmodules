@@ -1,0 +1,3 @@
+[submodule "firmata"]
+	path = firmata
+	url = https://github.com/firmata/arduino.git
