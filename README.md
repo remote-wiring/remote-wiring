@@ -14,9 +14,9 @@ This project uses the ***MIT license***, please consult the license file for det
 
 ## References:
 
-[Wiring API - Wiring.org.co](http://wiring.org.co/reference/)
-[Wiring API - Arduino.cc](https://www.arduino.cc/en/Reference/HomePage)
-[Wiring API - Particle.io](https://docs.particle.io/reference/firmware/photon/#input-output)
+[Wiring API - Wiring.org.co](http://wiring.org.co/reference/)  
+[Wiring API - Arduino.cc](https://www.arduino.cc/en/Reference/HomePage)  
+[Wiring API - Particle.io](https://docs.particle.io/reference/firmware/photon/#input-output)  
 
 ## Install instructions:
 

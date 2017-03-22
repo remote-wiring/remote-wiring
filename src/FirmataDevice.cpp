@@ -519,8 +519,7 @@ FirmataDevice::sysexCallback (
 #endif
         }
 
-        if ( nullptr != device->_uponSurvey ) { device->_uponSurvey(device->_survey_context); }
-        //TODO:[serial-wiring:#8] device->_refresh(device->_uponSurvey, device->_survey_context);
+        device->_refresh(device->_uponSurvey, device->_survey_context);
         break;
       }
       case firmata::PIN_STATE_RESPONSE:
