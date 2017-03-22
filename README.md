@@ -14,9 +14,9 @@ This project uses the ***MIT license***, please consult the license file for det
 
 ## References:
 
-[Wiring API - Wiring.org.co](http://wiring.org.co/reference/)  
-[Wiring API - Arduino.cc](https://www.arduino.cc/en/Reference/HomePage)  
-[Wiring API - Particle.io](https://docs.particle.io/reference/firmware/photon/#input-output)  
+[Wiring API - Wiring.org.co](http://wiring.org.co/reference/)
+[Wiring API - Arduino.cc](https://www.arduino.cc/en/Reference/HomePage)
+[Wiring API - Particle.io](https://docs.particle.io/reference/firmware/photon/#input-output)
 
 ## Install instructions:
 
@@ -31,27 +31,51 @@ make
 
 ## Example code:
 
-#### Remote Wiring Usage
+#### Blink the onboard LED
 
 ```c++
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
+
+#include <chrono>
+#include <iostream>
+#include <thread>
+
 #include <remote_wiring>
 #include <serial_wiring>
 
-using namespace remote_wiring::boards::arduino::uno;
+using namespace remote_wiring::boards::arduino::uno;  // change to your board
 using namespace remote_wiring::wiring;
 
-int main (int argc, char * argv[]) {
-    UartSerial usb = new UartSerial("/dev/ttyACM0");
-    RemoteDevice arduino_uno(usb);
+int main (int argc, char * argv []) {
+  if ( argc < 2 ) { std::cout << "Usage: " << argv[0] << " <serial device descriptor>" << std::endl; return -1; }
 
-    // Connect to the remote device
-    usb.begin();
-    arduino_uno.attach();
+  serial_wiring::UartSerial usb(argv[1]);
+  remote_wiring::FirmataDevice board(usb);
 
-    // use the Wiring interface on the RemoteDevice
+  // Establish a communication channel
+  usb.begin(57600);
 
-    arduino_uno.detach();
-    usb.end();
-    return 0;
+  // Attach to the remote device
+  board.attach();
+
+  // Survey the board's capabilities
+  // (not necessary but allows for error checking)
+  board.survey();
+
+  // Initialize digital pin LED_BUILTIN as an output
+  board.pinMode(LED_BUILTIN, OUTPUT);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  // Issue commands to the remote device via the Wiring API
+  board.digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  board.digitalWrite(LED_BUILTIN, LOW);  // turn the LED off by making the voltage LOW
+
+  // Clean-up and exit
+  board.detach();
+  usb.end();
+  return 0;
 }
+
+/* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
 ```

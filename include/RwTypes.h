@@ -8,6 +8,7 @@
 namespace remote_wiring {
 
 // Forward declarations
+class FirmataDevice;
 struct RemoteDevice;
 struct SemVer;
 class Telemorph;
