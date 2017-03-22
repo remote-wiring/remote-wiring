@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 
 #include <FirmataConstants.h>
 
@@ -287,19 +286,36 @@ FirmataDevice::_refresh (
     signal_t uponRefresh_,
     void * const context_
 ) {
-    (void)uponRefresh_;
-    (void)context_;
-    return __LINE__;
+    _refresh_mutex.try_lock_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S));
+    _uponRefresh = uponRefresh_;
+    _refresh_context = context_;
+    for (size_t pin = 0 ; pin < _pin_count ; ++pin) {
+        _marshaller.sendPinStateQuery(pin);
+    }
+    return 0;
 }
 
 int
-FirmataDevice::_softReset (
-    signal_t uponSoftReset_,
+FirmataDevice::_reset (
+    signal_t uponReset_,
     void * context_
 ) {
-    (void)uponSoftReset_;
-    (void)context_;
-    return __LINE__;
+    _marshaller.systemReset();
+
+    // Update local volatile state to reflect device reset state
+    for (size_t pin = 0 ; pin < _pin_count ; ++pin ) {
+        if ( _pin_info_cache[pin].analogReadAvailable() ) {
+            _pin_state_cache[pin].mode = ANALOG_READ;
+        } else if ( _pin_info_cache[pin].digitalWriteAvailable() ) {
+            _pin_state_cache[pin].mode = DIGITAL_WRITE;
+        } else {
+            _pin_state_cache[pin].mode = PIN_MODE_UNSPECIFIED;
+        }
+        _pin_state_cache[pin].value = 0;
+    }
+
+    if ( uponReset_ ) { uponReset_(context_); }
+    return 0;
 }
 
 int
@@ -365,8 +381,9 @@ FirmataDevice::extendBuffer (
     void * context_
 ) {
     FirmataDevice * device = reinterpret_cast<FirmataDevice *>(context_);
-
-    std::cout << std::endl << device->_parser_buffer_size << "-byte buffer exhausted!" << std::endl;
+#ifdef LOG
+    printf("\n%lu-byte buffer exhausted!\n", device->_parser_buffer_size);
+#endif
     uint8_t * temp_buffer;
     size_t temp_buffer_size = (device->_parser_buffer_size * 2);
 
@@ -376,7 +393,9 @@ FirmataDevice::extendBuffer (
         device->_parser_buffer = temp_buffer;
         device->_parser_buffer_size = temp_buffer_size;
         (void)device->_parser.setDataBufferOfSize(device->_parser_buffer, device->_parser_buffer_size);
-        std::cout << "Buffer increased to " << device->_parser_buffer_size << "-byte buffer." << std::endl;
+#ifdef LOG
+        printf("Buffer increased to %lu-byte buffer.\n", device->_parser_buffer_size);
+#endif
     }
 }
 
@@ -419,7 +438,9 @@ FirmataDevice::serialEventCallback (
     uint8_t incoming_byte;
     for (; device->_stream.available() ; device->_parser.parse(incoming_byte)) {
         incoming_byte = device->_stream.read();
+#ifdef LOG
         printf("0x%02x ", incoming_byte);
+#endif
     }
 }
 
@@ -435,18 +456,14 @@ FirmataDevice::sysexCallback (
     switch (command_) {
       case firmata::CAPABILITY_RESPONSE:
       {
-        std::cout << std::endl;
-        std::cout << std::endl;
         bool analog_resolution = false;
         bool mode_byte = true;
         bool pwm_resolution = false;
         device->_pin_count = 0;
         WiringPinInfo pin_data = { 0 };
 
-        // Parse capability response into device contract struct
+        // Parse capability response into WiringPinInfo
         for (size_t i = 0 ; i < argc_ ; ++i, mode_byte = !mode_byte) {
-            //TODO: Remove print functionality from library and `#include`s
-            printf("0x%02x ", argv_[i]);
             if ( mode_byte ) {
                 switch (argv_[i]) {
                   case firmata::PIN_MODE_ANALOG:
@@ -454,7 +471,6 @@ FirmataDevice::sysexCallback (
                     analog_resolution = true;
                     break;
                   case firmata::PIN_MODE_IGNORE:
-                    printf("\nPinConfig %u:\n\tsupported modes: 0x%02x\n\tanalog read resolution bits: %u\n\tanalog write resolution bits: %u\n\n", static_cast<unsigned int>(device->_pin_count), static_cast<uint8_t>(pin_data.supported_modes), static_cast<uint8_t>(pin_data.analog_read_resolution_bits), static_cast<uint8_t>(pin_data.analog_write_resolution_bits));
                     ++device->_pin_count;
                     device->_pin_info_cache = (WiringPinInfo *)realloc(device->_pin_info_cache, (sizeof(WiringPinInfo) * device->_pin_count));
                     device->_pin_info_cache[(device->_pin_count - 1)] = pin_data;
@@ -495,18 +511,62 @@ FirmataDevice::sysexCallback (
       }
       case firmata::ANALOG_MAPPING_RESPONSE:
       {
-        std::cout << std::endl;
-        std::cout << std::endl;
-
-        // Parse analog mapping response into device contract struct
+        // Parse analog mapping response into WiringPinInfo
         for (size_t i = 0 ; i < argc_ ; ++i) {
-            //TODO: Remove print functionality from library and `#include`s
-            printf("0x%02x ", argv_[i]);
             device->_pin_info_cache[i].reserved = argv_[i];
+#ifdef LOG
+            printf("\nWiringPinInfo %u:\n\tsupported modes: 0x%02x\n\tanalog read resolution bits: %u\n\tanalog write resolution bits: %u\n\tfirmata analog mapping: %u\n\n", static_cast<unsigned int>(i), static_cast<uint8_t>(device->_pin_info_cache[i].supported_modes), static_cast<uint8_t>(device->_pin_info_cache[i].analog_read_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].analog_write_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].reserved));
+#endif
         }
-        std::cout << std::endl;
 
         if ( nullptr != device->_uponSurvey ) { device->_uponSurvey(device->_survey_context); }
+        //TODO:[serial-wiring:#8] device->_refresh(device->_uponSurvey, device->_survey_context);
+        break;
+      }
+      case firmata::PIN_STATE_RESPONSE:
+      {
+        // Parse pin state response into WiringPinState
+        if ( 3 > argc_ ) {
+            ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Parsed data is malformed!");
+        } else if ( argv_[0] > device->_pin_count ) {
+            ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Pin number is out of bounds!");
+        } else {
+            switch (argv_[1]) {
+              case firmata::PIN_MODE_ANALOG:
+                device->_pin_state_cache[argv_[0]].mode = ANALOG_READ;
+                break;
+              case firmata::PIN_MODE_INPUT:
+                device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ;
+                break;
+              case firmata::PIN_MODE_OUTPUT:
+                device->_pin_state_cache[argv_[0]].mode = DIGITAL_WRITE;
+                break;
+              case firmata::PIN_MODE_PULLUP:
+                device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ_WITH_PULLUP;
+                break;
+              case firmata::PIN_MODE_PWM:
+                device->_pin_state_cache[argv_[0]].mode = ANALOG_WRITE;
+                break;
+              default:
+                ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Unexpected mode encountered!");
+                device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
+            }
+
+            // WiringPinState only support two-byte values
+            if (1 == (argc_ - 2)) {
+                device->_pin_state_cache[argv_[0]].value = argv_[2];
+            } else {
+                device->_pin_state_cache[argv_[0]].value = ((argv_[2] << 7) | argv_[3]);
+            }
+#ifdef LOG
+            printf("\nWiringPinState %u:\n\tcurrent mode: 0x%02x\n\tpin value: %u\n\n", static_cast<unsigned int>(argv_[0]), static_cast<uint8_t>(device->_pin_state_cache[argv_[0]].mode), static_cast<uint16_t>(device->_pin_state_cache[argv_[0]].value));
+#endif
+            // Call Wiring::refresh() callback on last pin
+            if ( (argv_[0] == (device->_pin_count - 1)) && device->_uponRefresh ) {
+                device->_refresh_mutex.unlock();
+                device->_uponRefresh(device->_refresh_context);
+            }
+        }
         break;
       }
       default: break;

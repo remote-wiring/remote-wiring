@@ -8,11 +8,12 @@
 namespace remote_wiring {
 
 // Forward declarations
-class WiringPinInfo;
-class WiringPinState;
 struct RemoteDevice;
+struct SemVer;
 class Telemorph;
 class Wiring;
+class WiringPinInfo;
+class WiringPinState;
 
 // Definitions
 /*!

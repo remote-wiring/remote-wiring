@@ -3,9 +3,9 @@
 #ifndef FIRMATA_DEVICE_H
 #define FIRMATA_DEVICE_H
 
-#include <cstdbool>
 #include <cstddef>
 #include <cstdlib>
+#include <mutex>
 
 #include <FirmataMarshaller.h>
 #include <FirmataParser.h>
@@ -55,9 +55,12 @@ class FirmataDevice : public RemoteDevice {
     WiringPinInfo * _pin_info_cache;
     WiringPinState * _pin_state_cache;
     SemVer _protocol_semantic_version;
+    void * _refresh_context;
+    std::timed_mutex _refresh_mutex;
     Stream & _stream;
     void * _survey_context;
     signal_t _uponAttach;
+    signal_t _uponRefresh;
     signal_t _uponSurvey;
 
     size_t
@@ -111,7 +114,7 @@ class FirmataDevice : public RemoteDevice {
     ) override;
 
     int
-    _softReset (
+    _reset (
         signal_t uponSoftReset_,
         void * context_
     ) override;

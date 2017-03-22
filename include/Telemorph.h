@@ -8,39 +8,9 @@
 
 #include "RwConstants.h"
 #include "RwTypes.h"
+#include "SemanticVersion.h"
 
 namespace remote_wiring {
-
-/*!
- * \brief Semantic Versioning Data
- */
-struct SemVer {
-    SemVer (
-        void
-    ) :
-        sv_major(0),
-        sv_minor(0),
-        sv_patch(0),
-        sv_prerelease(0)
-    {}
-
-    SemVer (
-        const size_t sv_major_,
-        const size_t sv_minor_,
-        const size_t sv_patch_,
-        const size_t sv_prerelease_
-    ) :
-        sv_major(sv_major_),
-        sv_minor(sv_minor_),
-        sv_patch(sv_patch_),
-        sv_prerelease(sv_prerelease_)
-    {}
-
-    size_t sv_major : 8;
-    size_t sv_minor : 8;
-    size_t sv_patch : 8;
-    size_t sv_prerelease : 8;
-};
 
 /*!
  * \brief An interface to define the interaction model with a remote device
@@ -72,32 +42,7 @@ class Telemorph {
         signal_t uponAttach_ = nullptr,
         void * context_ = nullptr
     ) {
-        int error;
-        bool block = false;
-        std::promise<void> callback_signal;
-        std::future<void> callback_gate(callback_signal.get_future());
-
-        if ( !uponAttach_ ) {
-            block = true;
-            uponAttach_ = synchronous_callback;
-            context_ = static_cast<void *>(&callback_signal);
-        }
-
-        error = _attach(uponAttach_, context_);
-        if ( !error && block ) {
-            switch (callback_gate.wait_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S)))
-            {
-              case std::future_status::ready:
-                break;
-              case std::future_status::deferred:
-              case std::future_status::timeout:
-              default:
-                error = __LINE__;
-                break;
-            }
-        }
-
-        return error;
+        return invoke_blockable_async_method(&Telemorph::_attach, uponAttach_, context_);
     }
 
     /*!
@@ -154,82 +99,32 @@ class Telemorph {
         signal_t uponRefresh_ = nullptr,
         void * context_ = nullptr
     ) {
-        int error;
-        bool block = false;
-        std::promise<void> callback_signal;
-        std::future<void> callback_gate(callback_signal.get_future());
-
-        if ( !uponRefresh_ ) {
-            block = true;
-            uponRefresh_ = synchronous_callback;
-            context_ = static_cast<void *>(&callback_signal);
-        }
-
-        error = _refresh(uponRefresh_, context_);
-        if ( !error && block ) {
-            switch (callback_gate.wait_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S)))
-            {
-              case std::future_status::ready:
-                break;
-              case std::future_status::deferred:
-              case std::future_status::timeout:
-              default:
-                error = __LINE__;
-                break;
-            }
-        }
-
-        return error;
+        return invoke_blockable_async_method(&Telemorph::_refresh, uponRefresh_, context_);
     }
 
     /*!
-     * \brief Perform a software reset
+     * \brief Reset the target device
      *
      * Reset the connection details, parsing cache and the state of
      * the remote device.
      *
-     * \param [in] uponSoftReset_ A function pointer to a callback to be fired
-     *                            once the survey operation has completed
+     * \param [in] uponReset_ A function pointer to a callback to be fired
+     *                        once the survey operation has completed
      * \param [in] context_ A context to be passed to the callback
      *
-     * \return An error code for the software reset request. A zero indicates
-     *         no error occurred, while a non-zero value indicates an error
+     * \return An error code for the reset request. A zero indicates no
+     *         error occurred, while a non-zero value indicates an error
      *         occurred while sending the request.
      *
      * \note The signature of the signalling callback is `void(*)(void *)`
      */
     inline
     int
-    softReset (
-        signal_t uponSoftReset_ = nullptr,
+    reset (
+        signal_t uponReset_ = nullptr,
         void * context_ = nullptr
     ) {
-        int error;
-        bool block = false;
-        std::promise<void> callback_signal;
-        std::future<void> callback_gate(callback_signal.get_future());
-
-        if ( !uponSoftReset_ ) {
-            block = true;
-            uponSoftReset_ = synchronous_callback;
-            context_ = static_cast<void *>(&callback_signal);
-        }
-
-        error = _softReset(uponSoftReset_, context_);
-        if ( !error && block ) {
-            switch (callback_gate.wait_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S)))
-            {
-              case std::future_status::ready:
-                break;
-              case std::future_status::deferred:
-              case std::future_status::timeout:
-              default:
-                error = __LINE__;
-                break;
-            }
-        }
-
-        return error;
+        return invoke_blockable_async_method(&Telemorph::_reset, uponReset_, context_);
     }
 
     /*!
@@ -259,32 +154,7 @@ class Telemorph {
         signal_t uponSurvey_ = nullptr,
         void * context_ = nullptr
     ) {
-        int error;
-        bool block = false;
-        std::promise<void> callback_signal;
-        std::future<void> callback_gate(callback_signal.get_future());
-
-        if ( !uponSurvey_ ) {
-            block = true;
-            uponSurvey_ = synchronous_callback;
-            context_ = static_cast<void *>(&callback_signal);
-        }
-
-        error = _survey(uponSurvey_, context_);
-        if ( !error && block ) {
-            switch (callback_gate.wait_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S)))
-            {
-              case std::future_status::ready:
-                break;
-              case std::future_status::deferred:
-              case std::future_status::timeout:
-              default:
-                error = __LINE__;
-                break;
-            }
-        }
-
-        return error;
+        return invoke_blockable_async_method(&Telemorph::_survey, uponSurvey_, context_);
     }
 
     /*!
@@ -335,8 +205,8 @@ class Telemorph {
 
     virtual
     int
-    _softReset (
-        signal_t uponSoftReset_,
+    _reset (
+        signal_t uponReset_,
         void * context_
     ) = 0;
 
@@ -354,6 +224,42 @@ class Telemorph {
     ) = 0;
 
   private:
+    typedef int(Telemorph::*blockable_async_method_t)(signal_t uponComplete_, void * context_);
+
+    int
+    invoke_blockable_async_method (
+        blockable_async_method_t method_,
+        signal_t methodComplete_,
+        void * context_
+    ) {
+        int error;
+        bool block = false;
+        std::promise<void> callback_signal;
+        std::future<void> callback_gate(callback_signal.get_future());
+
+        if ( !methodComplete_ ) {
+            block = true;
+            methodComplete_ = synchronous_callback;
+            context_ = static_cast<void *>(&callback_signal);
+        }
+
+        error = (this->*method_)(methodComplete_, context_);
+        if ( !error && block ) {
+            switch (callback_gate.wait_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S)))
+            {
+              case std::future_status::ready:
+                break;
+              case std::future_status::deferred:
+              case std::future_status::timeout:
+              default:
+                error = __LINE__;
+                break;
+            }
+        }
+
+        return error;
+    }
+
     static
     void
     synchronous_callback (
@@ -368,4 +274,3 @@ class Telemorph {
 #endif // TELEMORPH_H
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
-
