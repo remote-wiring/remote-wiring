@@ -16,6 +16,7 @@ include(DownloadProject.cmake)
 # Download Serial Wiring as source
 download_project(
   PROJ serial_wiring
+  PREFIX serial_wiring
   GIT_REPOSITORY https://github.com/remote-wiring/serial-wiring.git
   GIT_TAG master
   TIMEOUT 10
