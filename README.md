@@ -47,34 +47,41 @@ using namespace remote_wiring::boards::arduino::uno;  // change to your board
 using namespace remote_wiring::wiring;
 
 int main (int argc, char * argv []) {
-  if ( argc < 2 ) { std::cout << "Usage: " << argv[0] << " <serial device descriptor>" << std::endl; return -1; }
+    std::cout << "************************************************" << std::endl;
+    std::cout << "** The \"Examples > Firmata > StandardFirmata\" **" << std::endl;
+    std::cout << "** sketch must be deployed to the Arduino in  **" << std::endl;
+    std::cout << "** order for the sample to work correctly.    **" << std::endl;
+    std::cout << "************************************************" << std::endl;
 
-  serial_wiring::UartSerial usb(argv[1]);
-  remote_wiring::FirmataDevice board(usb);
+    if ( argc < 2 ) { std::cout << "Usage: " << argv[0] << " <serial device descriptor>" << std::endl; return -1; }
 
-  // Establish a communication channel
-  usb.begin(57600);
+    serial_wiring::UartSerial usb(argv[1]);
+    remote_wiring::FirmataDevice board(usb);
 
-  // Attach to the remote device
-  board.attach();
+    // Establish a communication channel
+    usb.begin(57600);
 
-  // Survey the board's capabilities
-  // (not necessary but allows for error checking)
-  board.survey();
+    // Attach to the remote device
+    board.attach();
 
-  // Initialize digital pin LED_BUILTIN as an output
-  board.pinMode(LED_BUILTIN, OUTPUT);
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // Survey the board's capabilities
+    // (not necessary but allows for error checking)
+    board.survey();
 
-  // Issue commands to the remote device via the Wiring API
-  board.digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  board.digitalWrite(LED_BUILTIN, LOW);  // turn the LED off by making the voltage LOW
+    // Initialize digital pin LED_BUILTIN as an output
+    board.pinMode(LED_BUILTIN, OUTPUT);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  // Clean-up and exit
-  board.detach();
-  usb.end();
-  return 0;
+    // Issue commands to the remote device via the Wiring API
+    board.digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    board.digitalWrite(LED_BUILTIN, LOW);  // turn the LED off by making the voltage LOW
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));  // allow time for the serial to send
+
+    // Clean-up and exit
+    board.detach();
+    usb.end();
+    return 0;
 }
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
