@@ -34,9 +34,9 @@ int main (int argc, char * argv []) {
 
     // Initialize digital pin LED_BUILTIN as an output
     board.pinMode(LED_BUILTIN, OUTPUT);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // Issue commands to the remote device via the Wiring API
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     board.digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     board.digitalWrite(LED_BUILTIN, LOW);  // turn the LED off by making the voltage LOW
