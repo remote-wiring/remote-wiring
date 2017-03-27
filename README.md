@@ -10,7 +10,27 @@ _\*The target device must be capable of running a firmata host program \(i.e. _[
 
 ###### Wiring interface
 
-Telemorph interface
+```cpp
+      size_t RemoteDevice::analogRead (size_t pin);
+        void RemoteDevice::analogWrite (size_t pin, uint8_t value);
+        bool RemoteDevice::digitalRead (size_t pin);
+        void RemoteDevice::digitalWrite (size_t pin, bool value);
+        void RemoteDevice::pinMode (size_t pin, size_t mode);
+```
+
+###### Telemorph interface
+
+```cpp
+         int RemoteDevice::attach (signal_t uponAttach, void * context);
+        void RemoteDevice::detach (void);
+const char * RemoteDevice::firmware (void);
+         int RemoteDevice::refresh (signal_t uponRefresh, void * context);
+         int RemoteDevice::reset (signal_t uponReset, void * context);
+         int RemoteDevice::survey (signal_t uponSurvey, void * context);
+      SemVer RemoteDevice::version (void);
+```
+
+> See also: [Wiring interface](http://wiring.org.co/reference)
 
 ## Quick Start Guide
 
@@ -33,6 +53,7 @@ $ make
 ### Run the sample:
 
 1. Run `readme_example` with no parameters to print out usage instructions.
+
    ```bash
    $ ./samples/readme_example
 
@@ -43,6 +64,7 @@ $ make
    ************************************************
    Usage: ./samples/readme_sample <serial device descriptor>
    ```
+
 2. Install StandardFirmata.ino \(v2.5.6\) on an Arduino clone.
 3. Take note of the _**Tools &gt; Port**_ setting, because this is the `<serial device descriptor>` required by `readme_example`.
 4. Run `readme_example` \(_linux example shown below_\).
@@ -54,32 +76,6 @@ $ make
 
 1. StandardFirmata will blink its major and minor version using a series of quick blinks.
 2. A single slow blink \(lasting one second\) will occur \(as shown in the example code below\).
-
-### Remote Device API \[v0.1.0\]:
-
-###### **Wiring interface**
-
-```cpp
-      size_t RemoteDevice::analogRead (size_t pin);
-        void RemoteDevice::analogWrite (size_t pin, uint8_t value);
-        bool RemoteDevice::digitalRead (size_t pin);
-        void RemoteDevice::digitalWrite (size_t pin, bool value);
-        void RemoteDevice::pinMode (size_t pin, size_t mode);
-```
-
-###### **Telemorph interface**
-
-```cpp
-         int RemoteDevice::attach (signal_t uponAttach, void * context);
-        void RemoteDevice::detach (void);
-const char * RemoteDevice::firmware (void);
-         int RemoteDevice::refresh (signal_t uponRefresh, void * context);
-         int RemoteDevice::reset (signal_t uponReset, void * context);
-         int RemoteDevice::survey (signal_t uponSurvey, void * context);
-      SemVer RemoteDevice::version (void);
-```
-
-> See also: [Wiring interface](http://wiring.org.co/reference)
 
 ### Example Code:
 
