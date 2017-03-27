@@ -6,6 +6,12 @@ Imagine, an application developer now has the ability to interact with the real 
 
 _\*The target device must be capable of running a firmata host program \(i.e. _[_StandardFirmata.ino_](https://github.com/firmata/arduino/tree/master/examples/StandardFirmata)_\) and reachable via a _[_supported serial connection_](https://github.com/remote-wiring/serial-wiring)_._
 
+### Remote Device API \[v0.1.0\]:
+
+###### Wiring interface
+
+Telemorph interface
+
 ## Quick Start Guide
 
 ### Prerequisites:
@@ -15,14 +21,39 @@ _\*The target device must be capable of running a firmata host program \(i.e. _[
 
 ### Install Instructions:
 
+```bash
+$ git clone https://github.com/remote-wiring/remote-wiring.git --recursive
+$ cd remote-wiring/
+$ mkdir build
+$ cd build/
+$ cmake ..
+$ make
 ```
-git clone https://github.com/remote-wiring/remote-wiring.git --recursive
-cd remote-wiring/
-mkdir build
-cd build/
-cmake ..
-make
-```
+
+### Run the sample:
+
+1. Run `readme_example` with no parameters to print out usage instructions.
+   ```bash
+   $ ./samples/readme_example
+
+   ************************************************
+   ** The "Examples > Firmata > StandardFirmata" **
+   ** sketch must be deployed to the Arduino in  **
+   ** order for the sample to work correctly.    **
+   ************************************************
+   Usage: ./samples/readme_sample <serial device descriptor>
+   ```
+2. Install StandardFirmata.ino \(v2.5.6\) on an Arduino clone.
+3. Take note of the _**Tools &gt; Port**_ setting, because this is the `<serial device descriptor>` required by `readme_example`.
+4. Run `readme_example` \(_linux example shown below_\).
+   ```bash
+   ./samples/readme_sample /dev/ttyACM0/
+   ```
+
+###### Expected Behavior
+
+1. StandardFirmata will blink its major and minor version using a series of quick blinks.
+2. A single slow blink \(lasting one second\) will occur \(as shown in the example code below\).
 
 ### Remote Device API \[v0.1.0\]:
 
