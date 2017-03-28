@@ -36,8 +36,8 @@ const char * RemoteDevice::firmware (void);
 
 ### Prerequisites:
 
-* **CMake** `v2.8.2`
-* **Git** `v1.9.1`
+* **CMake ** `v2.8.2` \(_minimum version_\)
+* **Git ** `v1.9.1` \(_minimum version_\)
 
 ### Install Instructions:
 
@@ -68,6 +68,7 @@ $ make
 2. Install StandardFirmata.ino \(v2.5.6\) on an Arduino clone.
 
 3. Take note of the _**Tools &gt; Port**_ setting, because this is the `<serial device descriptor>` required by `readme_example`.
+
 4. Run `readme_example` \(_linux example shown below_\).
    ```bash
    ./samples/readme_sample /dev/ttyACM0/
