@@ -460,7 +460,7 @@ FirmataDevice::sysexCallback (
         bool mode_byte = true;
         bool pwm_resolution = false;
         device->_pin_count = 0;
-        WiringPinInfo pin_data = { 0 };
+        WiringPinInfo pin_data = { 0, 0, 0, 0 };
 
         // Parse capability response into WiringPinInfo
         for (size_t i = 0 ; i < argc_ ; ++i, mode_byte = !mode_byte) {

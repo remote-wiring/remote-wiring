@@ -5,7 +5,7 @@ project(REMOTE_WIRING)
 find_package(Git REQUIRED)
 
 # Set the output folders
-set(CMAKE_CXX_FLAGS "-std=c++0x -Wall -Werror")
+set(CMAKE_CXX_FLAGS "-std=c++0x -Wall -Wextra -Werror")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
