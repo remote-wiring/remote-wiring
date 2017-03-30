@@ -6,13 +6,21 @@ Imagine, an application developer now has the ability to interact with the real 
 
 _\*The target device must be capable of running a firmata host program \(i.e. _[_StandardFirmata.ino_](https://github.com/firmata/arduino/tree/master/examples/StandardFirmata)_\) and reachable via a _[_supported serial connection_](https://github.com/remote-wiring/serial-wiring)_._
 
-### Remote Device API \[v0.1.0\]:
+### Remote Device API \[v0.1.1\]:
+
+###### Data types
+
+```cpp
+typedef void (*signal_t)(void * context);
+```
 
 ###### Wiring interface
 
 ```cpp
       size_t RemoteDevice::analogRead (size_t pin);
         void RemoteDevice::analogWrite (size_t pin, uint8_t value);
+        void RemoteDevice::attachInterrupt (size_t pin, signal_t isr, size_t mode, void * context = nullptr);
+        void RemoteDevice::detachInterrupt (size_t pin);
         bool RemoteDevice::digitalRead (size_t pin);
         void RemoteDevice::digitalWrite (size_t pin, bool value);
         void RemoteDevice::pinMode (size_t pin, size_t mode);
@@ -70,6 +78,7 @@ $ make
 3. Take note of the _**Tools &gt; Port**_ setting, because this is the `<serial device descriptor>` required by `readme_example`.
 
 4. Run `readme_example` \(_linux example shown below_\).
+
    ```bash
    ./samples/readme_sample /dev/ttyACM0/
    ```

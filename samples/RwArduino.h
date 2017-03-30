@@ -11,6 +11,8 @@
 #include <remote_wiring>
 #include <serial_wiring>
 
+typedef uint8_t byte;
+
 void loop(remote_wiring::RemoteDevice & board_);
 void setup(remote_wiring::RemoteDevice & board_);
 
@@ -31,6 +33,14 @@ delayMicroseconds (
     size_t us_
 ) {
     std::this_thread::sleep_for(std::chrono::microseconds(us_));
+}
+
+inline
+size_t
+digitalPinToInterrupt (
+    size_t pin_
+) {
+    return pin_;
 }
 
 }  // namespace wiring
@@ -80,7 +90,7 @@ int main (int argc, char * argv []) {
     }
 
     // Await user input
-    std::cout << std::endl << "Press any key to exit sketch..." << std::endl;
+    std::cout << std::endl << "Press <Enter> to exit sketch..." << std::endl;
     ::getchar();
     run = false;
     sketch.join();

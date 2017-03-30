@@ -20,8 +20,11 @@ static const size_t REMOTE_DEVICE_TIMEOUT_S = 5;
 
 namespace wiring {
 
-static const bool LOW = false;
-static const bool HIGH = true;
+static const size_t LOW = 0;
+static const size_t HIGH = 1;
+static const size_t CHANGE = 2;
+static const size_t RISING = 3;
+static const size_t FALLING = 4;
 
 static const size_t OUTPUT = 0;
 static const size_t INPUT = 1;

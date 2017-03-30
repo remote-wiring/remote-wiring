@@ -92,6 +92,51 @@ class Wiring {
     }
 
     /*!
+     * \brief Attach an ISR to a psuedo-interrupt for a given pin
+     *
+     * Generally, an ISR (interrupt service routine) should be as short
+     * and fast as possible. If your sketch uses multiple ISRs, only one
+     * can run at a time, other interrupts will be executed after the
+     * current one finishes in an order determined by the system.
+     *
+     * \param pin_ The pin number
+     * \param isr_ The interrupt service routine to call when the
+     *             interrupt condition occurs
+     * \param mode_ Defines when the interrupt should be triggered
+     *              (valid values: LOW, HIGH, CHANGE, RISING, FALLING)
+     *
+     * \note The user provided ISR will be invoked as a result of a
+     *       polling interval on the remote device.
+     *
+     * \warning This is considered a psuedo-interrupt and cannot be
+     *          substitued for true hardware interrupts. As such, precise
+     *          timing operations cannot be preformed. This limitation
+     *          manifest due to the latency involved in the remote aspect
+     *          of the device.
+     */
+    inline
+    void
+    attachInterrupt (
+        size_t pin_,
+        signal_t isr_,
+        size_t mode_,
+        void * context_ = nullptr
+    ) {
+        _attachInterrupt(pin_, isr_, mode_, context_);
+    }
+
+    /*!
+     * \brief  Detach the ISR for a given pin
+     */
+    inline
+    void
+    detachInterrupt (
+        size_t pin_
+    ) {
+        _detachInterrupt(pin_);
+    }
+
+    /*!
      * \brief Reads the value from a specified digital pin
      *
      * \param pin_ The number of the digital pin you want to read
@@ -180,6 +225,21 @@ class Wiring {
     _analogWrite (
         size_t pin_,
         uint8_t value_
+    ) = 0;
+
+    virtual
+    void
+    _attachInterrupt (
+        size_t pin_,
+        signal_t isr_,
+        size_t mode_,
+        void * context_
+    ) = 0;
+
+    virtual
+    void
+    _detachInterrupt (
+        size_t pin_
     ) = 0;
 
     virtual

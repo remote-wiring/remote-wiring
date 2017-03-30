@@ -47,6 +47,8 @@ class FirmataDevice : public RemoteDevice {
     void * _attach_context;
     char * _firmware_name;
     SemVer _firmware_semantic_version;
+    WiringPinInterrupt * _isr_cache;
+    size_t _isr_count;
     firmata::FirmataMarshaller _marshaller;
     firmata::FirmataParser _parser;
     uint8_t * _parser_buffer;
@@ -81,8 +83,21 @@ class FirmataDevice : public RemoteDevice {
     ) override;
 
     void
+    _attachInterrupt (
+        size_t pin_,
+        signal_t isr_,
+        size_t mode_,
+        void * context_
+    ) override;
+
+    void
     _detach (
         void
+    ) override;
+
+    void
+    _detachInterrupt (
+        size_t pin_
     ) override;
 
     bool
@@ -184,6 +199,23 @@ class FirmataDevice : public RemoteDevice {
         size_t argc_,
         uint8_t * argv_
     );
+
+    inline
+    int
+    updateInterruptStorageForPin (
+        const size_t pin_
+    ) {
+        int error;
+        if (pin_ < _isr_count) {
+            error = 0;
+        } else if ( nullptr == (_isr_cache = (WiringPinInterrupt *)realloc(_isr_cache, ((pin_ + 1) * sizeof(WiringPinInterrupt)))) ) {
+            error = __LINE__;
+        } else {
+            error = 0;
+            _isr_count = (pin_ + 1);
+        }
+        return error;
+    }
 
     inline
     int

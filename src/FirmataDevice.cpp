@@ -7,6 +7,7 @@
 
 #include <FirmataConstants.h>
 
+#include "RwConstants.h"
 #include "WiringPin.h"
 
 #define DATA_NOT_AVAILABLE_ANALOG 0x4000
@@ -54,6 +55,7 @@ FirmataDevice::~FirmataDevice (
     void
 ) {
     delete[](_firmware_name);
+    delete[](_isr_cache);
     delete[](_parser_buffer);
     delete[](_pin_info_cache);
     delete[](_pin_state_cache);
@@ -126,6 +128,27 @@ FirmataDevice::_attach (
 }
 
 void
+FirmataDevice::_attachInterrupt (
+    size_t pin_,
+    signal_t isr_,
+    size_t mode_,
+    void * context_
+) {
+    if ( pin_ >= _pin_count ) {
+        ::perror("FirmataDevice::attachInterrupt - Pin out of bounds!");
+    } else if ( _pin_info_cache && !_pin_info_cache[pin_].digitalReadAvailable() ) {
+        ::perror("FirmataDevice::attachInterrupt - Pin incapable of digital read functionality!");
+    } else if ( updateInterruptStorageForPin(pin_) ) {
+        ::perror("FirmataDevice::attachInterrupt - Unable to allocate storage for interrupt!");
+    } else {
+        // Store the interrupt parameters
+        _isr_cache[pin_].context = context_;
+        _isr_cache[pin_].isr = isr_;
+        _isr_cache[pin_].mode = mode_;
+    }
+}
+
+void
 FirmataDevice::_detach (
     void
 ) {
@@ -133,6 +156,20 @@ FirmataDevice::_detach (
     _stream.registerSerialEventCallback(nullptr, nullptr);
 
     return;
+}
+
+void
+FirmataDevice::_detachInterrupt (
+    size_t pin_
+) {
+    if ( pin_ >= _isr_count ) {
+        ::perror("FirmataDevice::detachInterrupt - Pin out of bounds!");
+    } else {
+        // Clear the interrupt parameters
+        _isr_cache[pin_].context = nullptr;
+        _isr_cache[pin_].isr = nullptr;
+        _isr_cache[pin_].mode = wiring::LOW;
+    }
 }
 
 bool
@@ -166,7 +203,7 @@ FirmataDevice::_digitalWrite (
     if ( pin_ >= _pin_count ) {
         ::perror("FirmataDevice::digitalWrite - Pin out of bounds!");
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].digitalWriteAvailable() ) {
-        ::perror("FirmataDevice::digitalWrite - Pin incapable of analog write functionality!");
+        ::perror("FirmataDevice::digitalWrite - Pin incapable of digital write functionality!");
     } else if ( PIN_MODE_UNSPECIFIED == _pin_state_cache[pin_].mode ) {
         _pin_state_cache[pin_].mode = DIGITAL_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_OUTPUT);
@@ -373,6 +410,16 @@ FirmataDevice::digitalReadCallback (
 
     for (int i = 0 ; i < capture_count ; ++i) {
         device->_pin_state_cache[(pin_offset + i)].value = ((1 << i) & value_);
+
+        // Invoke user-defined ISR (if registered)
+        if ( (device->_isr_count > (pin_offset + i)) && (nullptr != device->_isr_cache[(pin_offset + i)].isr) ) {
+            if ( (wiring::CHANGE == device->_isr_cache[(pin_offset + i)].mode)
+              || (value_ && ((wiring::HIGH == device->_isr_cache[(pin_offset + i)].mode) || (wiring::RISING == device->_isr_cache[(pin_offset + i)].mode)))
+              || (!value_ && ((wiring::LOW == device->_isr_cache[(pin_offset + i)].mode) || (wiring::FALLING == device->_isr_cache[(pin_offset + i)].mode)))
+            ) {
+                device->_isr_cache[(pin_offset + i)].isr(device->_isr_cache[(pin_offset + i)].context);
+            }
+        }
     }
 }
 

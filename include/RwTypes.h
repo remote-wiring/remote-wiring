@@ -14,6 +14,7 @@ struct SemVer;
 class Telemorph;
 class Wiring;
 class WiringPinInfo;
+struct WiringPinInterrupt;
 class WiringPinState;
 
 // Definitions

@@ -12,21 +12,6 @@
 namespace remote_wiring {
 
 /*!
- * \brief Details the active state of a pin
- *
- * PinState is volatile data describing the active state of each pin.
- * This information describes the current mode of operation on each
- * pin, the current resolution of analog operations on the pin - if
- * applicable - and the value associated with the pin.
- */
-class WiringPinState {
-  public:
-    pin_data_t mode : 8;
-    pin_data_t resolution_bits : 8;
-    pin_data_t value : 16;
-};
-
-/*!
  * \brief Details the hardware configuration of a pin
  *
  * PinInfo is immutable data describing the capabilities of each pin.
@@ -159,6 +144,30 @@ class WiringPinInfo {
     ) const {
         return (supported_modes & capability_);
     }
+};
+
+/*!
+ * \brief Interrupt state
+ */
+struct WiringPinInterrupt {
+    void * context;
+    signal_t isr;
+    size_t mode;
+};
+
+/*!
+ * \brief Details the active state of a pin
+ *
+ * PinState is volatile data describing the active state of each pin.
+ * This information describes the current mode of operation on each
+ * pin, the current resolution of analog operations on the pin - if
+ * applicable - and the value associated with the pin.
+ */
+class WiringPinState {
+  public:
+    pin_data_t mode : 8;
+    pin_data_t resolution_bits : 8;
+    pin_data_t value : 16;
 };
 
 } // remote_wiring

@@ -22,3 +22,8 @@ add_executable(Fade Fade.cpp)
 target_include_directories(Fade PUBLIC ${CMAKE_SOURCE_DIR}/samples)
 target_link_libraries(Fade LINK_PUBLIC remote_wiring firmata serial_wiring pthread)
 add_dependencies(Fade remote_wiring firmata serial_wiring)
+
+add_executable(Interrupt Interrupt.cpp)
+target_include_directories(Interrupt PUBLIC ${CMAKE_SOURCE_DIR}/samples)
+target_link_libraries(Interrupt LINK_PUBLIC remote_wiring firmata serial_wiring pthread)
+add_dependencies(Interrupt remote_wiring firmata serial_wiring)
