@@ -533,6 +533,7 @@ FirmataDevice::sysexCallback (
             switch (argv_[1]) {
               case firmata::PIN_MODE_ANALOG:
                 device->_pin_state_cache[argv_[0]].mode = ANALOG_READ;
+                device->_marshaller.sendPinMode(argv_[0], firmata::PIN_MODE_ANALOG);  // Arduino will report pin number as 4-bit transform
                 break;
               case firmata::PIN_MODE_INPUT:
                 device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ;
