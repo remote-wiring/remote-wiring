@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 2.8.2)
 project(REMOTE_WIRING)
 
+# Compile settings
+option(LOG "Enable debug log" OFF)
+if (LOG)
+  message(STATUS "Debug logging enabled...")
+  add_definitions(-DLOG)
+endif()
+
 # Prerequisites
 find_package(Git REQUIRED)
 
