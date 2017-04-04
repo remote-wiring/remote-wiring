@@ -82,6 +82,7 @@ FirmataDevice::_analogRead (
         _pin_state_cache[pin_].value = DATA_NOT_AVAILABLE_ANALOG;
         _pin_state_cache[pin_].mode = ANALOG_READ;  // set cache to reporting
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_ANALOG);  // Arduino will report pin number as 4-bit transform
+        _stream.flush();
     } else {
         result = _pin_state_cache[pin_].value;
     }
@@ -102,10 +103,12 @@ FirmataDevice::_analogWrite (
         _pin_state_cache[pin_].mode = ANALOG_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PWM);
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
+        _stream.flush();
     } else if ( ANALOG_WRITE != _pin_state_cache[pin_].mode ) {
         ::perror("FirmataDevice::analogWrite - Pin not set to output!");
     } else {
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
+        _stream.flush();
     }
 }
 
@@ -123,6 +126,7 @@ FirmataDevice::_attach (
 
     // Search for remote device on serial channel
     _marshaller.queryFirmwareVersion();
+    _stream.flush();
 
     return 0;
 }
@@ -208,10 +212,12 @@ FirmataDevice::_digitalWrite (
         _pin_state_cache[pin_].mode = DIGITAL_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_OUTPUT);
         _marshaller.sendDigital(static_cast<uint8_t>(pin_), value_);
+        _stream.flush();
     } else if ( DIGITAL_WRITE != _pin_state_cache[pin_].mode ) {
         ::perror("FirmataDevice::digitalWrite - Pin not set to output!");
     } else {
         _marshaller.sendDigital(static_cast<uint8_t>(pin_), value_);
+        _stream.flush();
     }
 }
 
@@ -262,6 +268,7 @@ FirmataDevice::_pinMode (
                     _pin_state_cache[pin_].mode = DIGITAL_READ;
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_INPUT);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
+                    _stream.flush();
                 } else {
                     ::perror("FirmataDevice::pinMode - Pin incapable of input.");
                 }
@@ -272,6 +279,7 @@ FirmataDevice::_pinMode (
                     _pin_state_cache[pin_].mode = DIGITAL_READ_WITH_PULLUP;
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PULLUP);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
+                    _stream.flush();
                 } else {
                     ::perror("FirmataDevice::pinMode - Pin not configured with pull-up resistor.");
                 }
@@ -299,12 +307,14 @@ FirmataDevice::_pinMode (
                 _pin_state_cache[pin_].mode = DIGITAL_READ;
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_INPUT);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
+                    _stream.flush();
                     firmata_mode = firmata::PIN_MODE_IGNORE;
                 break;
               case wiring::INPUT_PULLUP:
                 _pin_state_cache[pin_].mode = DIGITAL_READ_WITH_PULLUP;
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PULLUP);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
+                    _stream.flush();
                     firmata_mode = firmata::PIN_MODE_IGNORE;
                 break;
               default:
@@ -315,7 +325,7 @@ FirmataDevice::_pinMode (
     }
 
     // Always send, even when desired mode equals the cached mode, to account for transmission failure
-    if ( firmata::PIN_MODE_IGNORE != firmata_mode ) { _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata_mode); }
+    if ( firmata::PIN_MODE_IGNORE != firmata_mode ) { _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata_mode); _stream.flush(); }
 }
 
 int
@@ -329,6 +339,7 @@ FirmataDevice::_refresh (
     for (size_t pin = 0 ; pin < _pin_count ; ++pin) {
         _marshaller.sendPinStateQuery(pin);
     }
+    _stream.flush();
     return 0;
 }
 
@@ -338,6 +349,7 @@ FirmataDevice::_reset (
     void * context_
 ) {
     _marshaller.systemReset();
+    _stream.flush();
 
     // Update local volatile state to reflect device reset state
     for (size_t pin = 0 ; pin < _pin_count ; ++pin ) {
@@ -360,6 +372,7 @@ FirmataDevice::_samplingInterval (
     size_t interval_ms_
 ) {
     _marshaller.setSamplingInterval(static_cast<uint16_t>(interval_ms_));
+    _stream.flush();
     return 0;
 }
 
@@ -371,6 +384,7 @@ FirmataDevice::_survey (
     _uponSurvey = uponSurvey_;
     _survey_context = context_;
     _marshaller.sendCapabilityQuery();
+    _stream.flush();
     return 0;
 }
 
@@ -562,6 +576,7 @@ FirmataDevice::sysexCallback (
 
         // Query analog pin mapping
         device->_marshaller.sendAnalogMappingQuery();
+        device->_stream.flush();
         break;
       }
       case firmata::ANALOG_MAPPING_RESPONSE:
@@ -589,6 +604,7 @@ FirmataDevice::sysexCallback (
               case firmata::PIN_MODE_ANALOG:
                 device->_pin_state_cache[argv_[0]].mode = ANALOG_READ;
                 device->_marshaller.sendPinMode(argv_[0], firmata::PIN_MODE_ANALOG);  // Arduino will report pin number as 4-bit transform
+                device->_stream.flush();
                 break;
               case firmata::PIN_MODE_INPUT:
                 device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ;
