@@ -135,6 +135,11 @@ class FirmataDevice : public RemoteDevice {
     ) override;
 
     int
+    _samplingInterval (
+        size_t interval_ms_
+    ) override;
+
+    int
     _survey (
         signal_t uponSurvey_,
         void * context_

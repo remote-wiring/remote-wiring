@@ -128,6 +128,34 @@ class Telemorph {
     }
 
     /*!
+     * \brief Adjust the sampling interval
+     *
+     * The sampling interval is the delay between readings on the remote
+     * device. For example, if you needed to read an analog value every 5ms,
+     * but the sampling interval is set to 19ms (the default), then you will
+     * see the same value 3 times before a change can occur. However, if you
+     * were to set the sampling interval to 5 or less milliseconds, then you
+     * would be ensured a new value each time.
+     *
+     * \param [in] interval_ms_ The number of milliseconds to pass between
+     *                          read and report operations on the remote device
+     *
+     * \return An error code for the set sampling interval request. A zero
+     *         indicates no error occurred, while a non-zero value indicates
+     *         an error occurred while sending the request.
+     *
+     * \note The default interval for the arduino implementation is 19ms and
+     *       the minimum sampling interval is 1ms.
+     */
+    inline
+    int
+    samplingInterval (
+        size_t interval_ms_
+    ) {
+        return _samplingInterval(interval_ms_);
+    }
+
+    /*!
      * \brief Examine the features and capabilities of the remote device
      *
      * Survey queries the capabilities of the board, which bounds the
@@ -208,6 +236,12 @@ class Telemorph {
     _reset (
         signal_t uponReset_,
         void * context_
+    ) = 0;
+
+    virtual
+    int
+    _samplingInterval (
+        size_t interval_ms_
     ) = 0;
 
     virtual

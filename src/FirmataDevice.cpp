@@ -356,6 +356,14 @@ FirmataDevice::_reset (
 }
 
 int
+FirmataDevice::_samplingInterval (
+    size_t interval_ms_
+) {
+    _marshaller.setSamplingInterval(static_cast<uint16_t>(interval_ms_));
+    return 0;
+}
+
+int
 FirmataDevice::_survey (
     signal_t uponSurvey_,
     void * context_

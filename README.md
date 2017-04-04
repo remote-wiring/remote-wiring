@@ -34,6 +34,7 @@ typedef void (*signal_t)(void * context);
 const char * RemoteDevice::firmware (void);
          int RemoteDevice::refresh (signal_t uponRefresh, void * context);
          int RemoteDevice::reset (signal_t uponReset, void * context);
+         int RemoteDevice::samplingInterval (size_t interval_ms);
          int RemoteDevice::survey (signal_t uponSurvey, void * context);
       SemVer RemoteDevice::version (void);
 ```
@@ -46,6 +47,7 @@ const char * RemoteDevice::firmware (void);
 
 * **CMake ** `v2.8.2` \(_minimum version_\)
 * **Git ** `v1.9.1` \(_minimum version_\)
+* **Firmata ** \[remote device\]  `v2.5.6` \(_minimum version_\)
 
 ### Install Instructions:
 
