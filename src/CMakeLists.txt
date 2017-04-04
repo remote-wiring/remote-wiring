@@ -1,4 +1,4 @@
-add_library(firmata ${CMAKE_SOURCE_DIR}/firmata/FirmataMarshaller.cpp ${CMAKE_SOURCE_DIR}/firmata/FirmataParser.cpp)
+add_library(firmata ../firmata/FirmataMarshaller.cpp ../firmata/FirmataParser.cpp)
 add_dependencies(firmata serial_wiring)
 
 add_library(remote_wiring FirmataDevice.cpp)

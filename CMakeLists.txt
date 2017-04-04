@@ -31,7 +31,7 @@ download_project(
 add_subdirectory(${serial_wiring_SOURCE_DIR} ${serial_wiring_BINARY_DIR})
 
 include_directories(${serial_wiring_SOURCE_DIR}/include)
-include_directories(${CMAKE_SOURCE_DIR}/firmata)
+include_directories(firmata)
 
 add_subdirectory(src)
 add_subdirectory(include)
