@@ -99,13 +99,11 @@ FirmataDevice::_analogWrite (
         ::perror("FirmataDevice::analogWrite - Pin out of bounds!");
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].analogWriteAvailable() ) {
         ::perror("FirmataDevice::analogWrite - Pin incapable of analog write functionality!");
-    } else if ( PIN_MODE_UNSPECIFIED == _pin_state_cache[pin_].mode ) {
+    } else if ( ANALOG_WRITE != _pin_state_cache[pin_].mode ) {
         _pin_state_cache[pin_].mode = ANALOG_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PWM);
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
-    } else if ( ANALOG_WRITE != _pin_state_cache[pin_].mode ) {
-        ::perror("FirmataDevice::analogWrite - Pin not set to output!");
     } else {
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
