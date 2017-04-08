@@ -20,14 +20,20 @@ FirmataDevice::FirmataDevice (
 ) :
     _attach_context(nullptr),
     _firmware_name(nullptr),
+    _firmware_semantic_version{0,0,0,0},
     _parser_buffer(nullptr),
     _parser_buffer_size(0),
     _pin_count(0),
     _pin_info_cache(nullptr),
+    _pin_isr_cache(nullptr),
+    _pin_isr_count(0),
     _pin_state_cache(nullptr),
+    _protocol_semantic_version{0,0,0,0},
+    _refresh_context(nullptr),
     _stream(stream_),
     _survey_context(nullptr),
     _uponAttach(nullptr),
+    _uponRefresh(nullptr),
     _uponSurvey(nullptr)
 {
     _marshaller.begin(stream_);
@@ -55,7 +61,7 @@ FirmataDevice::~FirmataDevice (
     void
 ) {
     delete[](_firmware_name);
-    delete[](_isr_cache);
+    delete[](_pin_isr_cache);
     delete[](_parser_buffer);
     delete[](_pin_info_cache);
     delete[](_pin_state_cache);
@@ -144,9 +150,9 @@ FirmataDevice::_attachInterrupt (
         ::perror("FirmataDevice::attachInterrupt - Unable to allocate storage for interrupt!");
     } else {
         // Store the interrupt parameters
-        _isr_cache[pin_].context = context_;
-        _isr_cache[pin_].isr = isr_;
-        _isr_cache[pin_].mode = mode_;
+        _pin_isr_cache[pin_].context = context_;
+        _pin_isr_cache[pin_].isr = isr_;
+        _pin_isr_cache[pin_].mode = mode_;
     }
 }
 
@@ -164,13 +170,13 @@ void
 FirmataDevice::_detachInterrupt (
     size_t pin_
 ) {
-    if ( pin_ >= _isr_count ) {
+    if ( pin_ >= _pin_isr_count ) {
         ::perror("FirmataDevice::detachInterrupt - Pin out of bounds!");
     } else {
         // Clear the interrupt parameters
-        _isr_cache[pin_].context = nullptr;
-        _isr_cache[pin_].isr = nullptr;
-        _isr_cache[pin_].mode = wiring::LOW;
+        _pin_isr_cache[pin_].context = nullptr;
+        _pin_isr_cache[pin_].isr = nullptr;
+        _pin_isr_cache[pin_].mode = wiring::LOW;
     }
 }
 
@@ -432,12 +438,12 @@ FirmataDevice::digitalReadCallback (
         device->_pin_state_cache[(pin_offset + i)].value = ((1 << i) & value_);
 
         // Invoke user-defined ISR (if registered)
-        if ( (device->_isr_count > (pin_offset + i)) && (nullptr != device->_isr_cache[(pin_offset + i)].isr) ) {
-            if ( (wiring::CHANGE == device->_isr_cache[(pin_offset + i)].mode)
-              || (value_ && ((wiring::HIGH == device->_isr_cache[(pin_offset + i)].mode) || (wiring::RISING == device->_isr_cache[(pin_offset + i)].mode)))
-              || (!value_ && ((wiring::LOW == device->_isr_cache[(pin_offset + i)].mode) || (wiring::FALLING == device->_isr_cache[(pin_offset + i)].mode)))
+        if ( (device->_pin_isr_count > (pin_offset + i)) && (nullptr != device->_pin_isr_cache[(pin_offset + i)].isr) ) {
+            if ( (wiring::CHANGE == device->_pin_isr_cache[(pin_offset + i)].mode)
+              || (value_ && ((wiring::HIGH == device->_pin_isr_cache[(pin_offset + i)].mode) || (wiring::RISING == device->_pin_isr_cache[(pin_offset + i)].mode)))
+              || (!value_ && ((wiring::LOW == device->_pin_isr_cache[(pin_offset + i)].mode) || (wiring::FALLING == device->_pin_isr_cache[(pin_offset + i)].mode)))
             ) {
-                device->_isr_cache[(pin_offset + i)].isr(device->_isr_cache[(pin_offset + i)].context);
+                device->_pin_isr_cache[(pin_offset + i)].isr(device->_pin_isr_cache[(pin_offset + i)].context);
             }
         }
     }
