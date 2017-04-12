@@ -28,15 +28,22 @@ class FirmataDevice : public RemoteDevice {
      * there will be no ability for error checking, and undefined behavior will occur.
      *
      * \param [in] stream_ The underlying transport layer
+     * \param [in] jit_input_ Load the pin cache only after data has been requested
+     *                        (just-in-time) for that pin, regardless of the initial
+     *                        state of the board.
      *
+     * \note JIT'ing the pin reads (input) prevents reporting from unsolicited pins. The
+     *       savings in bandwidth come at the cost of delay in the pin state caches being
+     *       primed for the inital read.
+     * \note Use `FirmataDevice::survey` to promote the telemorph to a defined representation.
      * \note An undefined device does not require any inbound messages, which can help
      *       debug a poor connection or malconfigured remote device.
-     * \note Use `FirmataDevice::survey` to promote the telemorph to a defined representation.
      *
      * \sa remote_wiring::telemorph::survey
      */
     FirmataDevice (
-        Stream & stream_
+        Stream & stream_,
+        bool jit_input_ = false
     );
 
     ~FirmataDevice (
@@ -47,6 +54,7 @@ class FirmataDevice : public RemoteDevice {
     void * _attach_context;
     char * _firmware_name;
     SemVer _firmware_semantic_version;
+    const bool _jit_input;
     firmata::FirmataMarshaller _marshaller;
     firmata::FirmataParser _parser;
     uint8_t * _parser_buffer;
@@ -59,6 +67,7 @@ class FirmataDevice : public RemoteDevice {
     SemVer _protocol_semantic_version;
     void * _refresh_context;
     std::timed_mutex _refresh_mutex;
+    bool _report_on_query;
     Stream & _stream;
     void * _survey_context;
     signal_t _uponAttach;

@@ -6,7 +6,7 @@ Imagine, an application developer now has the ability to interact with the real 
 
 _\*The target device must be capable of running a firmata host program \(i.e. _[_StandardFirmata.ino_](https://github.com/firmata/arduino/tree/master/examples/StandardFirmata)_\) and reachable via a _[_supported serial connection_](https://github.com/remote-wiring/serial-wiring)_._
 
-### Remote Device API \[v0.1.1\]:
+### Remote Device API \[v0.1.3\]:
 
 ###### Data types
 

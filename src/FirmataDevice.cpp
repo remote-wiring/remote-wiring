@@ -16,11 +16,13 @@
 using namespace remote_wiring;
 
 FirmataDevice::FirmataDevice (
-    Stream & stream_
+    Stream & stream_,
+    bool jit_input_
 ) :
     _attach_context(nullptr),
     _firmware_name(nullptr),
     _firmware_semantic_version{0,0,0,0},
+    _jit_input(jit_input_),
     _parser_buffer(nullptr),
     _parser_buffer_size(0),
     _pin_count(0),
@@ -30,6 +32,7 @@ FirmataDevice::FirmataDevice (
     _pin_state_cache(nullptr),
     _protocol_semantic_version{0,0,0,0},
     _refresh_context(nullptr),
+    _report_on_query(!jit_input_),
     _stream(stream_),
     _survey_context(nullptr),
     _uponAttach(nullptr),
@@ -352,6 +355,7 @@ FirmataDevice::_reset (
     signal_t uponReset_,
     void * context_
 ) {
+    _report_on_query = !_jit_input;
     _marshaller.systemReset();
     _stream.flush();
 
@@ -419,7 +423,7 @@ FirmataDevice::analogReadCallback (
         pin = pin_transform;
     }
 
-    device->_pin_state_cache[pin].value = value_;
+    if (pin < device->_pin_count) { device->_pin_state_cache[pin].value = value_; }
 }
 
 void
@@ -606,18 +610,37 @@ FirmataDevice::sysexCallback (
         } else {
             switch (argv_[1]) {
               case firmata::PIN_MODE_ANALOG:
-                device->_pin_state_cache[argv_[0]].mode = ANALOG_READ;
-                device->_marshaller.sendPinMode(argv_[0], firmata::PIN_MODE_ANALOG);  // Arduino will report pin number as 4-bit transform
+                if ( device->_report_on_query ) {
+                    device->_pin_state_cache[argv_[0]].mode = ANALOG_READ;
+                    device->_marshaller.reportAnalogEnable(argv_[0]);  // Arduino will report pin number as 4-bit transform
+                } else {
+                    device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
+                    device->_marshaller.reportAnalogDisable(argv_[0]);
+                }
                 device->_stream.flush();
                 break;
               case firmata::PIN_MODE_INPUT:
-                device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ;
+                if ( device->_report_on_query ) {
+                    device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ;
+                    device->_marshaller.sendPinMode(argv_[0], firmata::PIN_MODE_INPUT);
+                } else {
+                    device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
+                    device->_marshaller.reportDigitalPortDisable(argv_[0] / 8);
+                }
+                device->_stream.flush();
                 break;
               case firmata::PIN_MODE_OUTPUT:
                 device->_pin_state_cache[argv_[0]].mode = DIGITAL_WRITE;
                 break;
               case firmata::PIN_MODE_PULLUP:
-                device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ_WITH_PULLUP;
+                if ( device->_report_on_query ) {
+                    device->_pin_state_cache[argv_[0]].mode = DIGITAL_READ_WITH_PULLUP;
+                    device->_marshaller.sendPinMode(argv_[0], firmata::PIN_MODE_PULLUP);
+                } else {
+                    device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
+                    device->_marshaller.reportDigitalPortDisable(argv_[0] / 8);
+                }
+                device->_stream.flush();
                 break;
               case firmata::PIN_MODE_PWM:
                 device->_pin_state_cache[argv_[0]].mode = ANALOG_WRITE;
@@ -627,7 +650,7 @@ FirmataDevice::sysexCallback (
                 device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
             }
 
-            // WiringPinState only support two-byte values
+            // WiringPinState only supports two-byte values
             if (1 == (argc_ - 2)) {
                 device->_pin_state_cache[argv_[0]].value = argv_[2];
             } else {
@@ -637,9 +660,12 @@ FirmataDevice::sysexCallback (
             printf("\nWiringPinState %u:\n\tcurrent mode: 0x%02x\n\tpin value: %u\n\n", static_cast<unsigned int>(argv_[0]), static_cast<uint8_t>(device->_pin_state_cache[argv_[0]].mode), static_cast<uint16_t>(device->_pin_state_cache[argv_[0]].value));
 #endif
             // Call Wiring::refresh() callback on last pin
-            if ( (argv_[0] == (device->_pin_count - 1)) && device->_uponRefresh ) {
-                device->_refresh_mutex.unlock();
-                device->_uponRefresh(device->_refresh_context);
+            if ( argv_[0] == (device->_pin_count - 1) ) {
+                device->_report_on_query = false;
+                if ( device->_uponRefresh ) {
+                    device->_refresh_mutex.unlock();
+                    device->_uponRefresh(device->_refresh_context);
+                }
             }
         }
         break;
