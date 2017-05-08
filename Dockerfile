@@ -1,9 +1,9 @@
 # Base Image
-FROM ubuntu:latest
+FROM alpine:latest
 
 # Add Required Packages [Layer 1]
-RUN apt update && \
-    apt install -y ca-certificates cmake g++ git make --no-install-recommends
+RUN apk update && \
+    apk add ca-certificates cmake g++ git make
 
 # Download Sources [Layer 2]
 RUN cd ~ && \
