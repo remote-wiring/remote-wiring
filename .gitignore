@@ -3,4 +3,4 @@ build/
 html/
 latex/
 *.dSYM
-
+a.out

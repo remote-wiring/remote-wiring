@@ -3,8 +3,14 @@
 #ifndef WIRING_H
 #define WIRING_H
 
+#include <cerrno>
+#include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+
+#include "RwConstants.h"
+#include "RwTypes.h"
 
 namespace remote_wiring {
 
@@ -44,7 +50,19 @@ class Wiring {
     analogRead (
         size_t pin_
     ) {
-        return _analogRead(pin_);
+        size_t result;
+
+        if (127 < pin_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::analogRead - Pin number argument overflow!");
+            result = static_cast<size_t>(UINT_MAX);
+        } else if (1023 < (result = _analogRead(pin_))) {
+            errno = ERANGE;
+            ::perror("ERROR: Wiring::analogRead - Underlying implementation result out of range!");
+            result = 1024;
+        }
+
+        return result;
     }
 
     /*!
@@ -86,9 +104,17 @@ class Wiring {
     void
     analogWrite (
         size_t pin_,
-        uint8_t value_
+        size_t value_
     ) {
-        _analogWrite(pin_, value_);
+        if (127 < pin_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::analogWrite - Pin number argument overflow!");
+        } else if (255 < value_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::analogWrite - Analog value argument overflow!");
+        } else {
+            _analogWrite(pin_, value_);
+        }
     }
 
     /*!
@@ -122,7 +148,25 @@ class Wiring {
         size_t mode_,
         void * context_ = nullptr
     ) {
-        _attachInterrupt(pin_, isr_, mode_, context_);
+        if (127 < pin_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::attachInterrupt - Pin number argument overflow!");
+        } else if (nullptr == isr_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::attachInterrupt - ISR cannot be NULL!");
+        } else switch (mode_) {
+          case wiring::CHANGE:
+          case wiring::FALLING:
+          case wiring::HIGH:
+          case wiring::LOW:
+          case wiring::RISING:
+            _attachInterrupt(pin_, isr_, mode_, context_);
+            break;
+          default:
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::attachInterrupt - Mode argument invalid!");
+            break;
+        }
     }
 
     /*!
@@ -133,7 +177,12 @@ class Wiring {
     detachInterrupt (
         size_t pin_
     ) {
-        _detachInterrupt(pin_);
+        if (127 < pin_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::detachInterrupt - Pin number argument overflow!");
+        } else {
+            _detachInterrupt(pin_);
+        }
     }
 
     /*!
@@ -155,7 +204,16 @@ class Wiring {
     digitalRead (
         size_t pin_
     ) {
-        return _digitalRead(pin_);
+        bool result;
+        if (127 < pin_) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::digitalRead - Pin number argument overflow!");
+            result = false;
+        } else {
+            result = _digitalRead(pin_);
+        }
+
+        return result;
     }
 
     /*!
@@ -183,7 +241,12 @@ class Wiring {
         size_t pin_,
         bool value_
     ) {
-        _digitalWrite(pin_, value_);
+        if ( 127 < pin_ ) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::digitalWrite - Pin number argument overflow!");
+        } else {
+            _digitalWrite(pin_, value_);
+        }
     }
 
     /*!
@@ -197,7 +260,6 @@ class Wiring {
      * \note The analog input pins can be used as digital pins,
      *       referred to as A0, A1, etc.
      *
-     * \sa RemoteDevice::analogWrite
      * \sa RemoteDevice::digitalRead
      * \sa RemoteDevice::digitalWrite
      * \sa <a href="https://www.arduino.cc/en/Reference/PinMode">::pinMode (Arduino.cc)</a>
@@ -208,7 +270,20 @@ class Wiring {
         size_t pin_,
         size_t mode_
     ) {
-        _pinMode(pin_, mode_);
+        if ( 127 < pin_ ) {
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::pinMode - Pin number argument overflow!");
+        } else switch (mode_) {
+          case wiring::INPUT:
+          case wiring::INPUT_PULLUP:
+          case wiring::OUTPUT:
+            _pinMode(pin_, mode_);
+            break;
+          default:
+            errno = EINVAL;
+            ::perror("ERROR: Wiring::pinMode - Mode argument invalid!");
+            break;
+        }
     }
 
   protected:
@@ -224,7 +299,7 @@ class Wiring {
     void
     _analogWrite (
         size_t pin_,
-        uint8_t value_
+        size_t value_
     ) = 0;
 
     virtual
@@ -268,4 +343,3 @@ class Wiring {
 #endif // WIRING_H
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
-
