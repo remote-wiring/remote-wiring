@@ -54,11 +54,15 @@ class Wiring {
 
         if (127 < pin_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::analogRead - Pin number argument overflow!");
+#endif
             result = static_cast<size_t>(UINT_MAX);
         } else if (1023 < (result = _analogRead(pin_))) {
             errno = ERANGE;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::analogRead - Underlying implementation result out of range!");
+#endif
             result = 1024;
         }
 
@@ -108,10 +112,14 @@ class Wiring {
     ) {
         if (127 < pin_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::analogWrite - Pin number argument overflow!");
+#endif
         } else if (255 < value_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::analogWrite - Analog value argument overflow!");
+#endif
         } else {
             _analogWrite(pin_, value_);
         }
@@ -150,10 +158,14 @@ class Wiring {
     ) {
         if (127 < pin_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::attachInterrupt - Pin number argument overflow!");
+#endif
         } else if (nullptr == isr_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::attachInterrupt - ISR cannot be NULL!");
+#endif
         } else switch (mode_) {
           case wiring::CHANGE:
           case wiring::FALLING:
@@ -164,7 +176,9 @@ class Wiring {
             break;
           default:
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::attachInterrupt - Mode argument invalid!");
+#endif
             break;
         }
     }
@@ -179,7 +193,9 @@ class Wiring {
     ) {
         if (127 < pin_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::detachInterrupt - Pin number argument overflow!");
+#endif
         } else {
             _detachInterrupt(pin_);
         }
@@ -207,7 +223,9 @@ class Wiring {
         bool result;
         if (127 < pin_) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::digitalRead - Pin number argument overflow!");
+#endif
             result = false;
         } else {
             result = _digitalRead(pin_);
@@ -243,7 +261,9 @@ class Wiring {
     ) {
         if ( 127 < pin_ ) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::digitalWrite - Pin number argument overflow!");
+#endif
         } else {
             _digitalWrite(pin_, value_);
         }
@@ -272,7 +292,9 @@ class Wiring {
     ) {
         if ( 127 < pin_ ) {
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::pinMode - Pin number argument overflow!");
+#endif
         } else switch (mode_) {
           case wiring::INPUT:
           case wiring::INPUT_PULLUP:
@@ -281,7 +303,9 @@ class Wiring {
             break;
           default:
             errno = EINVAL;
+#ifdef LOG_ERROR
             ::perror("ERROR: Wiring::pinMode - Mode argument invalid!");
+#endif
             break;
         }
     }
