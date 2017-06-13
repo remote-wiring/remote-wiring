@@ -16,7 +16,7 @@ static const pin_data_t DIGITAL_READ = 0x04;
 static const pin_data_t DIGITAL_READ_WITH_PULLUP = 0x08;
 static const pin_data_t DIGITAL_WRITE = 0x10;
 
-#ifdef TESTING
+#ifdef TEST
   static const size_t REMOTE_DEVICE_TIMEOUT_MS = 1;
 #else
   static const size_t REMOTE_DEVICE_TIMEOUT_MS = 5000;
