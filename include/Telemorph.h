@@ -39,7 +39,7 @@ class Telemorph {
         signal_t uponComplete_ = nullptr,
         void * context_ = nullptr
     ) {
-        utility::invoke_blockable_async_callback(this, &Telemorph::_attach, uponComplete_, context_);
+        utility::invoke_blockable_async_callback(*this, &Telemorph::_attach, uponComplete_, context_);
     }
 
     /*!
