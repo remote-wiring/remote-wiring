@@ -12,30 +12,45 @@ namespace remote_wiring {
  */
 struct SemVer {
     SemVer (
-        void
-    ) :
-        sv_major(0),
-        sv_minor(0),
-        sv_patch(0),
-        sv_prerelease(0)
-    {}
-
-    SemVer (
         const size_t sv_major_,
         const size_t sv_minor_,
-        const size_t sv_patch_,
-        const size_t sv_prerelease_
+        const size_t sv_patch_
     ) :
         sv_major(sv_major_),
         sv_minor(sv_minor_),
-        sv_patch(sv_patch_),
-        sv_prerelease(sv_prerelease_)
+        sv_patch(sv_patch_)
     {}
 
-    size_t sv_major : 8;
-    size_t sv_minor : 8;
-    size_t sv_patch : 8;
-    size_t sv_prerelease : 8;
+    bool operator== (
+        const SemVer & other_
+    ) const {
+        return (
+            (sv_major == other_.sv_major)
+         && (sv_minor == other_.sv_minor)
+         && (sv_patch == other_.sv_patch)
+        );
+    }
+
+    bool operator< (
+        const SemVer & other_
+    ) const {
+        return (
+            (sv_major < other_.sv_major)
+         || (
+                (sv_major == other_.sv_major)
+             && (sv_minor < other_.sv_minor)
+            )
+         || (
+                (sv_major == other_.sv_major)
+             && (sv_minor == other_.sv_minor)
+             && (sv_patch < other_.sv_patch)
+            )
+        );
+    }
+
+    size_t sv_major;
+    size_t sv_minor;
+    size_t sv_patch;
 };
 
 }  // namespace remote_wiring
