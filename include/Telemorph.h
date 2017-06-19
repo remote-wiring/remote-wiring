@@ -39,7 +39,7 @@ class Telemorph {
         signal_t uponComplete_ = nullptr,
         void * context_ = nullptr
     ) {
-        utility::invoke_blockable_async_callback(*this, &Telemorph::_attach, uponComplete_, context_);
+        utility::invoke_blockable_async_method(*this, &Telemorph::_attach, uponComplete_, context_);
     }
 
     /*!
@@ -56,6 +56,9 @@ class Telemorph {
         int error;
         if ( 0 != (error = _detach()) ) {
             errno = error;
+#ifdef LOG_ERRORS
+            ::perror("ERROR: Underlying implementation encoutered error!");
+#endif
         }
     }
 
@@ -95,9 +98,7 @@ class Telemorph {
         signal_t uponComplete_ = nullptr,
         void * context_ = nullptr
     ) {
-        (void)uponComplete_;
-        (void)context_;
-        //utility::invoke_blockable_async_callback(this, &Telemorph::_refresh, nullptr, nullptr);
+        utility::invoke_blockable_async_method(*this, &Telemorph::_refresh, uponComplete_, context_);
     }
 
     /*!
@@ -118,9 +119,7 @@ class Telemorph {
         signal_t uponComplete_ = nullptr,
         void * context_ = nullptr
     ) {
-        (void)uponComplete_;
-        (void)context_;
-        //invoke_blockable_async_method(&Telemorph::_reset, uponComplete_, context_);
+        utility::invoke_blockable_async_method(*this, &Telemorph::_reset, uponComplete_, context_);
     }
 
     /*!
@@ -136,7 +135,7 @@ class Telemorph {
      * \param [in] interval_ms_ The number of milliseconds to pass between
      *                          read and report operations on the remote device
      *
-     * \note The default interval for the arduino implementation is 19ms and
+     * \note The default interval for the Arduino implementation is 19ms and
      *       the minimum sampling interval is 1ms.
      */
     inline
@@ -145,9 +144,16 @@ class Telemorph {
         size_t interval_ms_
     ) {
         int error = 0;
-        if ( 0 != (error = _samplingInterval(interval_ms_)) ) {
+        if ( 1 > interval_ms_ ) {
+            errno = EDOM;
+#ifdef LOG_ERRORS
+            ::perror("ERROR: Specified interval is too small!");
+#endif
+        } else if ( 0 != (error = _samplingInterval(interval_ms_)) ) {
             errno = error;
+#ifdef LOG_ERRORS
             ::perror("ERROR: Underlying implementation encoutered error!");
+#endif
         }
     }
 
@@ -174,9 +180,7 @@ class Telemorph {
         signal_t uponComplete_ = nullptr,
         void * context_ = nullptr
     ) {
-        (void)uponComplete_;
-        (void)context_;
-        //invoke_blockable_async_method(&Telemorph::_survey, uponComplete_, context_);
+        utility::invoke_blockable_async_method(*this, &Telemorph::_survey, uponComplete_, context_);
     }
 
     /*!
@@ -189,7 +193,7 @@ class Telemorph {
      * \sa remote_wiring::Telemorph::survey
      */
     inline
-    SemVer *
+    const SemVer *
     version (
         void
     ) {
@@ -246,7 +250,7 @@ class Telemorph {
     ) = 0;
 
     virtual
-    SemVer *
+    const SemVer *
     _version (
         void
     ) = 0;
