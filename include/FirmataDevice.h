@@ -79,10 +79,10 @@ class FirmataDevice : public RemoteDevice {
         const size_t pin_
     ) override;
 
-    void
+    int
     _analogWrite (
         const size_t pin_,
-        const uint8_t value_
+        const size_t value_
     ) override;
 
     int
@@ -91,7 +91,7 @@ class FirmataDevice : public RemoteDevice {
         void * context_
     ) override;
 
-    void
+    int
     _attachInterrupt (
         size_t pin_,
         signal_t isr_,
@@ -99,12 +99,12 @@ class FirmataDevice : public RemoteDevice {
         void * context_
     ) override;
 
-    void
+    int
     _detach (
         void
     ) override;
 
-    void
+    int
     _detachInterrupt (
         size_t pin_
     ) override;
@@ -114,7 +114,7 @@ class FirmataDevice : public RemoteDevice {
         const size_t pin_
     ) override;
 
-    void
+    int
     _digitalWrite (
         const size_t pin_,
         const bool value_
@@ -125,7 +125,7 @@ class FirmataDevice : public RemoteDevice {
         void
     ) override;
 
-    void
+    int
     _pinMode (
         const size_t pin_,
         const size_t mode_
@@ -154,7 +154,7 @@ class FirmataDevice : public RemoteDevice {
         void * context_
     ) override;
 
-    SemVer
+    const SemVer *
     _version (
         void
     ) override;

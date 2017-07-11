@@ -60,11 +60,11 @@ TEST_CASE("utility::invoke_blockable_async_callback - An `object_` argument not 
 }
 
 TEST_CASE("utility::invoke_blockable_async_callback - `nullptr` in `method_` argument results in error", "[utility::invoke_blockable_async_callback]") {
-    // This requirement is confirmed by the compiler do to the fuction signature.
+    // This requirement is confirmed by the compiler do to the function signature.
 }
 
 TEST_CASE("utility::invoke_blockable_async_callback - A `method_` argument not a member function of templated type results in error", "[utility::invoke_blockable_async_callback]") {
-    // This requirement is confirmed by the compiler do to the fuction signature.
+    // This requirement is confirmed by the compiler do to the function signature.
 }
 
 TEST_CASE("utility::invoke_blockable_async_callback - Invokes the provided method", "[utility::invoke_blockable_async_callback]") {

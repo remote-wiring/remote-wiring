@@ -28,22 +28,27 @@ class ConcreteWiring : public Wiring {
     bool analogWrite_invoked;
     size_t analogWrite_pin_arg;
     size_t analogWrite_value_arg;
+    int analogWrite_result;
     void * attachInterrupt_context_arg;
     bool attachInterrupt_invoked;
     signal_t attachInterrupt_isr_arg;
     size_t attachInterrupt_mode_arg;
     size_t attachInterrupt_pin_arg;
+    int attachInterrupt_result;
     bool detachInterrupt_invoked;
     size_t detachInterrupt_pin_arg;
+    int detachInterrupt_result;
     bool digitalRead_invoked;
     size_t digitalRead_pin_arg;
     bool digitalRead_result;
     bool digitalWrite_invoked;
     size_t digitalWrite_pin_arg;
     bool digitalWrite_value_arg;
+    int digitalWrite_result;
     bool pinMode_invoked;
     size_t pinMode_mode_arg;
     size_t pinMode_pin_arg;
+    int pinMode_result;
 
     ConcreteWiring (
         void
@@ -54,22 +59,27 @@ class ConcreteWiring : public Wiring {
         analogWrite_invoked(false),
         analogWrite_pin_arg(UINT_MAX),
         analogWrite_value_arg(UINT_MAX),
+        analogWrite_result(0),
         attachInterrupt_context_arg(nullptr),
         attachInterrupt_invoked(false),
         attachInterrupt_isr_arg(nullptr),
         attachInterrupt_mode_arg(UINT_MAX),
         attachInterrupt_pin_arg(UINT_MAX),
+        attachInterrupt_result(0),
         detachInterrupt_invoked(false),
         detachInterrupt_pin_arg(UINT_MAX),
+        detachInterrupt_result(0),
         digitalRead_invoked(false),
         digitalRead_pin_arg(UINT_MAX),
         digitalRead_result(false),
         digitalWrite_invoked(false),
         digitalWrite_pin_arg(UINT_MAX),
         digitalWrite_value_arg(false),
+        digitalWrite_result(0),
         pinMode_invoked(false),
         pinMode_mode_arg(UINT_MAX),
-        pinMode_pin_arg(UINT_MAX)
+        pinMode_pin_arg(UINT_MAX),
+        pinMode_result(0)
     {}
 
   private:
@@ -82,7 +92,7 @@ class ConcreteWiring : public Wiring {
         return analogRead_result;
     }
 
-    void
+    int
     _analogWrite (
         size_t pin_,
         size_t value_
@@ -90,10 +100,10 @@ class ConcreteWiring : public Wiring {
         analogWrite_invoked = true;
         analogWrite_pin_arg = pin_;
         analogWrite_value_arg = value_;
-        return;
+        return analogWrite_result;
     }
 
-    void
+    int
     _attachInterrupt (
         size_t pin_,
         signal_t isr_,
@@ -105,16 +115,16 @@ class ConcreteWiring : public Wiring {
         attachInterrupt_isr_arg = isr_;
         attachInterrupt_mode_arg = mode_;
         attachInterrupt_pin_arg = pin_;
-        return;
+        return attachInterrupt_result;
     }
 
-    void
+    int
     _detachInterrupt (
         size_t pin_
     ) override {
         detachInterrupt_invoked = true;
         detachInterrupt_pin_arg = pin_;
-        return;
+        return detachInterrupt_result;
     }
 
     bool
@@ -126,7 +136,7 @@ class ConcreteWiring : public Wiring {
         return digitalRead_result;
     }
 
-    void
+    int
     _digitalWrite (
         size_t pin_,
         bool value_
@@ -134,10 +144,10 @@ class ConcreteWiring : public Wiring {
         digitalWrite_invoked = true;
         digitalWrite_pin_arg = pin_;
         digitalWrite_value_arg = value_;
-        return;
+        return digitalWrite_result;
     }
 
-    void
+    int
     _pinMode (
         size_t pin_,
         size_t mode_
@@ -145,7 +155,7 @@ class ConcreteWiring : public Wiring {
         pinMode_invoked = true;
         pinMode_mode_arg = mode_;
         pinMode_pin_arg = pin_;
-        return;
+        return pinMode_result;
     }
 };
 

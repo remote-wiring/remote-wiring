@@ -320,14 +320,14 @@ class Wiring {
     ) = 0;
 
     virtual
-    void
+    int
     _analogWrite (
         size_t pin_,
         size_t value_
     ) = 0;
 
     virtual
-    void
+    int
     _attachInterrupt (
         size_t pin_,
         signal_t isr_,
@@ -336,7 +336,7 @@ class Wiring {
     ) = 0;
 
     virtual
-    void
+    int
     _detachInterrupt (
         size_t pin_
     ) = 0;
@@ -348,14 +348,14 @@ class Wiring {
     ) = 0;
 
     virtual
-    void
+    int
     _digitalWrite (
         size_t pin_,
         bool value_
     ) = 0;
 
     virtual
-    void
+    int
     _pinMode (
         size_t pin_,
         size_t mode_

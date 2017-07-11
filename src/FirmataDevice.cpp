@@ -21,7 +21,7 @@ FirmataDevice::FirmataDevice (
 ) :
     _attach_context(nullptr),
     _firmware_name(nullptr),
-    _firmware_semantic_version{0,0,0,0},
+    _firmware_semantic_version{0,0,0},
     _jit_input(jit_input_),
     _parser_buffer(nullptr),
     _parser_buffer_size(0),
@@ -30,7 +30,7 @@ FirmataDevice::FirmataDevice (
     _pin_isr_cache(nullptr),
     _pin_isr_count(0),
     _pin_state_cache(nullptr),
-    _protocol_semantic_version{0,0,0,0},
+    _protocol_semantic_version{0,0,0},
     _refresh_context(nullptr),
     _report_on_query(!jit_input_),
     _stream(stream_),
@@ -99,10 +99,10 @@ FirmataDevice::_analogRead (
     return result;
 }
 
-void
+int
 FirmataDevice::_analogWrite (
     const size_t pin_,
-    const uint8_t value_
+    const size_t value_
 ) {
     if ( pin_ >= _pin_count ) {
         ::perror("FirmataDevice::analogWrite - Pin out of bounds!");
@@ -117,6 +117,7 @@ FirmataDevice::_analogWrite (
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     }
+    return 0;
 }
 
 int
@@ -138,7 +139,7 @@ FirmataDevice::_attach (
     return 0;
 }
 
-void
+int
 FirmataDevice::_attachInterrupt (
     size_t pin_,
     signal_t isr_,
@@ -157,19 +158,20 @@ FirmataDevice::_attachInterrupt (
         _pin_isr_cache[pin_].isr = isr_;
         _pin_isr_cache[pin_].mode = mode_;
     }
+    return 0;
 }
 
-void
+int
 FirmataDevice::_detach (
     void
 ) {
     // Unsubscribe from serial data
     _stream.registerSerialEventCallback(nullptr, nullptr);
 
-    return;
+    return 0;
 }
 
-void
+int
 FirmataDevice::_detachInterrupt (
     size_t pin_
 ) {
@@ -181,6 +183,7 @@ FirmataDevice::_detachInterrupt (
         _pin_isr_cache[pin_].isr = nullptr;
         _pin_isr_cache[pin_].mode = wiring::LOW;
     }
+    return 0;
 }
 
 bool
@@ -206,7 +209,7 @@ FirmataDevice::_digitalRead (
     return result;
 }
 
-void
+int
 FirmataDevice::_digitalWrite (
     const size_t pin_,
     const bool value_
@@ -226,6 +229,7 @@ FirmataDevice::_digitalWrite (
         _marshaller.sendDigital(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     }
+    return 0;
 }
 
 const char *
@@ -235,14 +239,11 @@ FirmataDevice::_firmware (
     return _firmware_name;
 }
 
-void
+int
 FirmataDevice::_pinMode (
     const size_t pin_,
     const size_t mode_
 ) {
-    (void)pin_;
-    (void)mode_;
-
     int firmata_mode;
 
     if ( _pin_info_cache ) {
@@ -333,6 +334,7 @@ FirmataDevice::_pinMode (
 
     // Always send, even when desired mode equals the cached mode, to account for transmission failure
     if ( firmata::PIN_MODE_IGNORE != firmata_mode ) { _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata_mode); _stream.flush(); }
+    return 0;
 }
 
 int
@@ -340,7 +342,7 @@ FirmataDevice::_refresh (
     signal_t uponRefresh_,
     void * const context_
 ) {
-    _refresh_mutex.try_lock_for(std::chrono::seconds(REMOTE_DEVICE_TIMEOUT_S));
+    _refresh_mutex.try_lock_for(std::chrono::milliseconds(REMOTE_DEVICE_TIMEOUT_MS));
     _uponRefresh = uponRefresh_;
     _refresh_context = context_;
     for (size_t pin = 0 ; pin < _pin_count ; ++pin) {
@@ -396,11 +398,11 @@ FirmataDevice::_survey (
     return 0;
 }
 
-SemVer
+const SemVer *
 FirmataDevice::_version (
     void
 ) {
-    return _firmware_semantic_version;
+    return &_firmware_semantic_version;
 }
 
 void
@@ -484,7 +486,7 @@ FirmataDevice::firmwareVersionCallback (
     const char * firmware_
 ) {
     FirmataDevice * device = static_cast<FirmataDevice *>(context_);
-    device->_firmware_semantic_version = SemVer(sv_major_, sv_minor_, 0, 0);
+    device->_firmware_semantic_version = SemVer(sv_major_, sv_minor_, 0);
 
     // Duplicate description
     device->_firmware_name = new char[::strlen(firmware_)];
@@ -503,7 +505,7 @@ FirmataDevice::protocolVersionCallback (
     FirmataDevice * device = static_cast<FirmataDevice *>(context_);
     (void)description_;
 
-    device->_protocol_semantic_version = SemVer(sv_major_, sv_minor_, 0, 0);
+    device->_protocol_semantic_version = SemVer(sv_major_, sv_minor_, 0);
 }
 
 void
