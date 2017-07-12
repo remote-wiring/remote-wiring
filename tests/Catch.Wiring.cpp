@@ -159,6 +159,12 @@ class ConcreteWiring : public Wiring {
     }
 };
 
+TEST_CASE("Wiring::analogRead - Invokes underlying implementation", "[Wiring::analogRead]") {
+    ConcreteWiring wiring;
+    wiring.analogRead(0);
+    REQUIRE( true == wiring.analogRead_invoked );
+}
+
 TEST_CASE("Wiring::analogRead - Out of range pin argument generates error", "[Wiring::analogRead]") {
     errno = 0;
     ConcreteWiring wiring;
@@ -209,6 +215,12 @@ TEST_CASE("Wiring::analogRead - Return 1024 on out of range return value from un
     REQUIRE( expected_result == actual_result );
 }
 
+TEST_CASE("Wiring::analogWrite - Invokes underlying implementation", "[Wiring::analogWrite]") {
+    ConcreteWiring wiring;
+    wiring.analogWrite(0, 0);
+    REQUIRE( true == wiring.analogWrite_invoked );
+}
+
 TEST_CASE("Wiring::analogWrite - Out of range pin argument generates error", "[Wiring::analogWrite]") {
     errno = 0;
     ConcreteWiring wiring;
@@ -243,6 +255,27 @@ TEST_CASE("Wiring::analogWrite - Implementation not invoked when invalid argumen
     REQUIRE( false == wiring.analogWrite_invoked );
 }
 
+TEST_CASE("Wiring::analogWrite - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Wiring::analogWrite]") {
+    errno = 0;
+    ConcreteWiring wiring;
+    wiring.analogWrite_result = ENOTTY;
+    wiring.analogWrite(0, 0);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::analogWrite - If no errors occur during execution, any previous `errno` shall be preserved", "[Wiring::analogWrite]") {
+    errno = ENOTTY;
+    ConcreteWiring wiring;
+    wiring.analogWrite(0, 0);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::attachInterrupt - Invokes underlying implementation", "[Wiring::attachInterrupt]") {
+    ConcreteWiring wiring;
+    wiring.attachInterrupt(0, ::callback, wiring::LOW, nullptr);
+    REQUIRE( true == wiring.attachInterrupt_invoked );
+}
+
 TEST_CASE("Wiring::attachInterrupt - Out of range pin argument generates error", "[Wiring::attachInterrupt]") {
     errno = 0;
     ConcreteWiring wiring;
@@ -267,7 +300,7 @@ TEST_CASE("Wiring::attachInterrupt - Null isr argument generates error", "[Wirin
 TEST_CASE("Wiring::attachInterrupt - Supplies isr argument to the underlying implementation", "[Wiring::attachInterrupt]") {
     const signal_t expected_isr_arg = ::callback;
     ConcreteWiring wiring;
-    wiring.attachInterrupt(0, callback, wiring::LOW, nullptr);
+    wiring.attachInterrupt(0, expected_isr_arg, wiring::LOW, nullptr);
     REQUIRE( expected_isr_arg == wiring.attachInterrupt_isr_arg );
 }
 
@@ -281,7 +314,7 @@ TEST_CASE("Wiring::attachInterrupt - Out of range mode argument generates error"
 TEST_CASE("Wiring::attachInterrupt - Supplies mode argument to the underlying implementation", "[Wiring::attachInterrupt]") {
     const size_t expected_mode_arg = wiring::RISING;
     ConcreteWiring wiring;
-    wiring.attachInterrupt(0, callback, expected_mode_arg, nullptr);
+    wiring.attachInterrupt(0, ::callback, expected_mode_arg, nullptr);
     REQUIRE( expected_mode_arg == wiring.attachInterrupt_mode_arg );
 }
 
@@ -289,7 +322,7 @@ TEST_CASE("Wiring::attachInterrupt - Supplies context argument to the underlying
     size_t context = 19790917;
     void * const expected_context_arg = &context;
     ConcreteWiring wiring;
-    wiring.attachInterrupt(0, callback, wiring::LOW, expected_context_arg);
+    wiring.attachInterrupt(0, ::callback, wiring::LOW, expected_context_arg);
     REQUIRE( expected_context_arg == wiring.attachInterrupt_context_arg );
 }
 
@@ -297,6 +330,27 @@ TEST_CASE("Wiring::attachInterrupt - Implementation not invoked when invalid arg
     ConcreteWiring wiring;
     wiring.attachInterrupt(128, ::callback, wiring::LOW, nullptr);
     REQUIRE( false == wiring.attachInterrupt_invoked );
+}
+
+TEST_CASE("Wiring::attachInterrupt - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Wiring::attachInterrupt]") {
+    errno = 0;
+    ConcreteWiring wiring;
+    wiring.attachInterrupt_result = ENOTTY;
+    wiring.attachInterrupt(0, ::callback, wiring::LOW, nullptr);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::attachInterrupt - If no errors occur during execution, any previous `errno` shall be preserved", "[Wiring::attachInterrupt]") {
+    errno = ENOTTY;
+    ConcreteWiring wiring;
+    wiring.attachInterrupt(0, ::callback, wiring::LOW, nullptr);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::detachInterrupt - Invokes underlying implementation", "[Wiring::detachInterrupt]") {
+    ConcreteWiring wiring;
+    wiring.detachInterrupt(0);
+    REQUIRE( true == wiring.detachInterrupt_invoked );
 }
 
 TEST_CASE("Wiring::detachInterrupt - Out of range pin argument generates error", "[Wiring::detachInterrupt]") {
@@ -317,6 +371,27 @@ TEST_CASE("Wiring::detachInterrupt - Implementation not invoked when invalid arg
     ConcreteWiring wiring;
     wiring.detachInterrupt(128);
     REQUIRE( false == wiring.detachInterrupt_invoked );
+}
+
+TEST_CASE("Wiring::detachInterrupt - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Wiring::detachInterrupt]") {
+    errno = 0;
+    ConcreteWiring wiring;
+    wiring.detachInterrupt_result = ENOTTY;
+    wiring.detachInterrupt(0);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::detachInterrupt - If no errors occur during execution, any previous `errno` shall be preserved", "[Wiring::detachInterrupt]") {
+    errno = ENOTTY;
+    ConcreteWiring wiring;
+    wiring.detachInterrupt(0);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::digitalRead - Invokes underlying implementation", "[Wiring::digitalRead]") {
+    ConcreteWiring wiring;
+    wiring.digitalRead(0);
+    REQUIRE( true == wiring.digitalRead_invoked );
 }
 
 TEST_CASE("Wiring::digitalRead - Out of range pin argument generates error", "[Wiring::digitalRead]") {
@@ -354,31 +429,58 @@ TEST_CASE("Wiring::digitalRead - Returns value from underlying implementation", 
     REQUIRE( expected_result == actual_result );
 }
 
+TEST_CASE("Wiring::digitalWrite - Invokes underlying implementation", "[Wiring::digitalWrite]") {
+    ConcreteWiring wiring;
+    wiring.digitalWrite(0, wiring::LOW);
+    REQUIRE( true == wiring.digitalWrite_invoked );
+}
+
 TEST_CASE("Wiring::digitalWrite - Out of range pin argument generates error", "[Wiring::digitalWrite]") {
     errno = 0;
     ConcreteWiring wiring;
-    wiring.digitalWrite(128, false);
+    wiring.digitalWrite(128, wiring::LOW);
     REQUIRE( EINVAL == errno );
 }
 
 TEST_CASE("Wiring::digitalWrite - Supplies pin argument to the underlying implementation", "[Wiring::digitalWrite]") {
     ConcreteWiring wiring;
     const size_t expected_pin_arg = 7;
-    wiring.digitalWrite(expected_pin_arg, false);
+    wiring.digitalWrite(expected_pin_arg, wiring::LOW);
     REQUIRE( expected_pin_arg == wiring.digitalWrite_pin_arg );
 }
 
 TEST_CASE("Wiring::digitalWrite - Supplies value argument to the underlying implementation", "[Wiring::digitalWrite]") {
     ConcreteWiring wiring;
-    const bool expected_value_arg = true;
+    const bool expected_value_arg = wiring::HIGH;
     wiring.digitalWrite(0, expected_value_arg);
     REQUIRE( expected_value_arg == wiring.digitalWrite_value_arg );
 }
 
 TEST_CASE("Wiring::digitalWrite - Implementation not invoked when invalid argument supplied", "[Wiring::digitalWrite]") {
     ConcreteWiring wiring;
-    wiring.digitalWrite(128, wiring::OUTPUT);
+    wiring.digitalWrite(128, wiring::LOW);
     REQUIRE( false == wiring.digitalWrite_invoked );
+}
+
+TEST_CASE("Wiring::digitalWrite - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Wiring::digitalWrite]") {
+    errno = 0;
+    ConcreteWiring wiring;
+    wiring.digitalWrite_result = ENOTTY;
+    wiring.digitalWrite(0, wiring::LOW);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::digitalWrite - If no errors occur during execution, any previous `errno` shall be preserved", "[Wiring::digitalWrite]") {
+    errno = ENOTTY;
+    ConcreteWiring wiring;
+    wiring.digitalWrite(0, wiring::LOW);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::pinMode - Invokes underlying implementation", "[Wiring::pinMode]") {
+    ConcreteWiring wiring;
+    wiring.pinMode(0, wiring::OUTPUT);
+    REQUIRE( true == wiring.pinMode_invoked );
 }
 
 TEST_CASE("Wiring::pinMode - Out of range pin argument generates error", "[Wiring::pinMode]") {
@@ -413,6 +515,21 @@ TEST_CASE("Wiring::pinMode - Implementation not invoked when invalid argument su
     ConcreteWiring wiring;
     wiring.pinMode(128, wiring::OUTPUT);
     REQUIRE( false == wiring.pinMode_invoked );
+}
+
+TEST_CASE("Wiring::pinMode - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Wiring::pinMode]") {
+    errno = 0;
+    ConcreteWiring wiring;
+    wiring.pinMode_result = ENOTTY;
+    wiring.pinMode(0, wiring::OUTPUT);
+    REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::pinMode - If no errors occur during execution, any previous `errno` shall be preserved", "[Wiring::pinMode]") {
+    errno = ENOTTY;
+    ConcreteWiring wiring;
+    wiring.pinMode(0, wiring::OUTPUT);
+    REQUIRE( ENOTTY == errno );
 }
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */

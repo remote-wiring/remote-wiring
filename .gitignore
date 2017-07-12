@@ -1,6 +1,8 @@
+.vscode/
 bin/
 build/
 html/
 latex/
+
 *.dSYM
 a.out
