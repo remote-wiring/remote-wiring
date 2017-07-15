@@ -6,7 +6,7 @@ Imagine, an application developer now has the ability to interact with the real 
 
 _\*The target device must be capable of running a firmata host program \(i.e. _[_StandardFirmata.ino_](https://github.com/firmata/arduino/tree/master/examples/StandardFirmata)_\) and reachable via a _[_supported serial connection_](https://github.com/remote-wiring/serial-wiring)_._
 
-### Remote Device API \[v0.1.3\]:
+### Remote Device API \[v0.2.0\]:
 
 ###### Data types
 
@@ -36,7 +36,7 @@ const char * RemoteDevice::firmware (void);
          int RemoteDevice::reset (signal_t uponReset, void * context);
          int RemoteDevice::samplingInterval (size_t interval_ms);
          int RemoteDevice::survey (signal_t uponSurvey, void * context);
-      SemVer RemoteDevice::version (void);
+    SemVer * RemoteDevice::version (void);
 ```
 
 > See also: [Wiring interface](http://wiring.org.co/reference)
@@ -45,9 +45,9 @@ const char * RemoteDevice::firmware (void);
 
 ### Prerequisites:
 
-* **CMake ** `v2.8.2` \(_minimum version_\)
-* **Git ** `v1.9.1` \(_minimum version_\)
-* **Firmata ** \[remote device\]  `v2.5.6` \(_minimum version_\)
+* **CMake** `v2.8.2` \(_minimum version_\)
+* **Git** `v1.9.1` \(_minimum version_\)
+* **Firmata** \[remote device firmware\]  `v2.5.6` \(_minimum version_\)
 
 ### Install Instructions:
 
