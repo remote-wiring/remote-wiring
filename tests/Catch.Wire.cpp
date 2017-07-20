@@ -114,7 +114,7 @@ class ConcreteTwoWire : public TwoWire {
     size_t
     _available (
         void
-    ) const override {
+    ) override {
         available_invoked = true;
         return available_result;
     }

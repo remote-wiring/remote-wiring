@@ -27,19 +27,26 @@ namespace remote_wiring {
  */
 typedef void(*wire_event_t)(void * context_, size_t bytes_read_);
 
-/*!
- * \brief This library allows you to communicate with I²C / TWI devices.
+/*
+ * \brief This library allows you to communicate with I²C / TWI devices
  *
- * There are both 7 and 8-bit versions of I²C addresses. 7 bits identify
- * the device, and the eighth bit determines if it's being written to or
- * read from. The Wire library uses 7 bit addresses throughout. If you
- * have a datasheet or sample code that uses 8 bit address, you'll want
- * to drop the low bit (i.e. shift the value one bit to the right), yielding
- * an address between 0 and 127. However the addresses from 0 to 7 are
- * not used because they are reserved so the first address that can be
- * used is 8.
+ * The TWI protocol and interface were developed by Phillips. It is
+ * possible to connect multiple TWI devices to the TWI pins creating
+ * a network or bus of devices and communicate with them by means of
+ * an address. The TWI can be configured to act as a Master or a Slave
+ * in a network of devices. There are both 7- and 8-bit versions of
+ * I²C addresses. 7 bits identify the device, and the eighth bit
+ * determines if it's being written to or read from. The Wire library
+ * uses 7 bit addresses throughout. The addresses from 0 to 7 are not
+ * used because are reserved so the first address that can be used is 8.
  *
- * \note A pull-up resistor is needed when connecting SDA/SCL pins.
+ * \note The SDA/SCL lines must be HIGH when inactive, a pull-up
+ *       resistor is needed when connecting SDA/SCL pins.
+ *
+ * \note If you have a datasheet or sample code that uses 8-bit
+ *       address, you'll want to drop the low bit (i.e. shift the
+ *       value one bit to the right), yielding an address between
+ *       0 and 127.
  */
 class TwoWire {
   public:
@@ -58,17 +65,24 @@ class TwoWire {
     size_t
     available (
         void
-    ) const {
+    ) {
         return _available();
     }
 
     /*!
      * \brief Join the I²C bus as a master or slave
      *
-     * \param [in] address_ 7-bit address of this device
-     *                      when in slave-mode
+     * The begin() method is used to initiate the TWI as a Master and
+     * the begin(address) method is used to join the TWI bus a slave
+     * using the address specified.
+     *
+     * \param [in] address_ 7-bit slave address of this device; if
+     *                      not specified, join the bus as a master
      *
      * \note I²C address 0x77 is reserved for RemoteWiring
+     *
+     * \sa TwoWire::end
+     * \sa <a href="https://www.arduino.cc/en/Reference/WireBegin">Wire.begin (Arduino.cc)</a>
      */
     inline
     void
@@ -154,7 +168,7 @@ class TwoWire {
      *
      * \param [in] address_ 7-bit address of the slave device
      *
-     * \sa TwoWire::beginTransmission
+     * \sa TwoWire::endTransmission
      * \sa TwoWire::write
      * \sa <a href="https://www.arduino.cc/en/Reference/WireBeginTransmission">Wire.beginTransmission (Arduino.cc)</a>
      */
@@ -180,6 +194,8 @@ class TwoWire {
 
     /*!
      * \brief Close connection to the I²C bus
+     *
+     * \sa TwoWire::begin
      */
     inline
     void
@@ -216,6 +232,7 @@ class TwoWire {
      * \n - 3 - received NACK on transmit of data
      * \n - 4 - other error
      *
+     * \sa TwoWire::beginTransmission
      * \sa <a href="https://www.arduino.cc/en/Reference/WireEndTransmission">Wire.endTransmission (Arduino.cc)</a>
      */
     inline
@@ -243,6 +260,7 @@ class TwoWire {
      * multiple calls to `TwoWire::write` have enqueued a response to a
      * `TwoWire::onRequest` callback.
      *
+     * \sa TwoWire::onRequest
      * \sa <a href="https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/libraries/Wire/src/Wire.h#L71">GitHub: Arduino/.../libraries/Wire.h</a>
      */
     inline
@@ -261,13 +279,18 @@ class TwoWire {
     }
 
     /*!
-     * \brief Registers a function to be called when a slave
-     *        device receives a transmission from a master
+     * \brief Register a function to be called when a slave device
+     *        receives a write request from a master
      *
      * \param [in] handler_ Callback invoked when the slave
-     *                      receives data
+     *                      receives a read request
      * \param [in] context_ Optional context provided to `handler_`
      *                      via the `context_` parameter
+     *
+     * \sa TwoWire::flush
+     * \sa TwoWire::requestFrom
+     * \sa TwoWire::write
+     * \sa <a href="https://www.arduino.cc/en/Reference/WireOnReceive">Wire.onReceive (Arduino.cc)</a>
      */
     inline
     void
@@ -288,13 +311,18 @@ class TwoWire {
     }
 
     /*!
-     * \brief Register a function to be called when a master
-     *        requests data from this slave device
+     * \brief Register a function to be called when a slave device
+     *        receives a read request from a master
      *
-     * \param [in] handler_ Callback invoked when byte(s)
-     *                      are available in the buffer
+     * \param [in] handler_ Callback invoked when the slave
+     *                      receives a write request
      * \param [in] context_ Optional context provided to `handler_`
      *                      via the `context_` parameter
+     *
+     * \sa TwoWire::beginTransmission
+     * \sa TwoWire::flush
+     * \sa TwoWire::write
+     * \sa <a href="https://www.arduino.cc/en/Reference/WireOnRequest">Wire.onRequest (Arduino.cc)</a>
      */
     inline
     void
@@ -364,6 +392,10 @@ class TwoWire {
      *                while in control.
      *
      * \return The number of bytes returned from the slave device
+     *
+     * \sa TwoWire::available
+     * \sa TwoWire::read
+     * \sa <a href="https://www.arduino.cc/en/Reference/WireRequestFrom">Wire.requestFrom (Arduino.cc)</a>
      */
     inline
     size_t
@@ -433,6 +465,8 @@ class TwoWire {
      *
      * \return Number of bytes enqueued
      *
+     * \sa TwoWire::endTransmission
+     * \sa TwoWire::flush
      * \sa <a href="https://www.arduino.cc/en/Reference/WireWrite">Wire.write (Arduino.cc)</a>
      */
     inline
@@ -446,11 +480,12 @@ class TwoWire {
   protected:
     ~TwoWire (void) {}
 
+  private:
     virtual
     size_t
     _available (
         void
-    ) const = 0;
+    ) = 0;
 
     virtual
     int

@@ -11,6 +11,7 @@
 #include <FirmataParser.h>
 #include <serial_wiring>
 
+#include "FirmataI2c.h"
 #include "RemoteDevice.h"
 #include "RwTypes.h"
 #include "WiringPin.h"
@@ -46,12 +47,14 @@ class FirmataDevice : public RemoteDevice {
         bool jit_input_ = false
     );
 
+    virtual
     ~FirmataDevice (
         void
     );
 
   private:
     void * _attach_context;
+    FirmataI2c _firmata_i2c;
     char * _firmware_name;
     SemVer _firmware_semantic_version;
     const bool _jit_input;

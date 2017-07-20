@@ -53,6 +53,7 @@ class ConcreteWiring : public Wiring {
     ConcreteWiring (
         void
     ) :
+        Wiring(*reinterpret_cast<TwoWire *>(0xBAD12C)),
         analogRead_invoked(false),
         analogRead_pin_arg(UINT_MAX),
         analogRead_result(0),

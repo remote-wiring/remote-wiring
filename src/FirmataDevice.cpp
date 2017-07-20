@@ -8,6 +8,7 @@
 #include <FirmataConstants.h>
 
 #include "RwConstants.h"
+#include "Wire.h"
 #include "WiringPin.h"
 
 #define DATA_NOT_AVAILABLE_ANALOG 0x4000
@@ -19,7 +20,9 @@ FirmataDevice::FirmataDevice (
     Stream & stream_,
     bool jit_input_
 ) :
+    RemoteDevice(_firmata_i2c),
     _attach_context(nullptr),
+    _firmata_i2c(stream_),
     _firmware_name(nullptr),
     _firmware_semantic_version{0,0,0},
     _jit_input(jit_input_),
@@ -533,6 +536,19 @@ FirmataDevice::sysexCallback (
     FirmataDevice * device = static_cast<FirmataDevice *>(context_);
 
     switch (command_) {
+      case firmata::ANALOG_MAPPING_RESPONSE:
+      {
+        // Parse analog mapping response into WiringPinInfo
+        for (size_t i = 0 ; i < argc_ ; ++i) {
+            device->_pin_info_cache[i].reserved = argv_[i];
+#ifdef LOG
+            printf("\nWiringPinInfo %u:\n\tsupported modes: 0x%02x\n\tanalog read resolution bits: %u\n\tanalog write resolution bits: %u\n\tfirmata analog mapping: %u\n\n", static_cast<unsigned int>(i), static_cast<uint8_t>(device->_pin_info_cache[i].supported_modes), static_cast<uint8_t>(device->_pin_info_cache[i].analog_read_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].analog_write_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].reserved));
+#endif
+        }
+
+        device->_refresh(device->_uponSurvey, device->_survey_context);
+        break;
+      }
       case firmata::CAPABILITY_RESPONSE:
       {
         bool analog_resolution = false;
@@ -589,17 +605,76 @@ FirmataDevice::sysexCallback (
         device->_stream.flush();
         break;
       }
-      case firmata::ANALOG_MAPPING_RESPONSE:
-      {
-        // Parse analog mapping response into WiringPinInfo
-        for (size_t i = 0 ; i < argc_ ; ++i) {
-            device->_pin_info_cache[i].reserved = argv_[i];
-#ifdef LOG
-            printf("\nWiringPinInfo %u:\n\tsupported modes: 0x%02x\n\tanalog read resolution bits: %u\n\tanalog write resolution bits: %u\n\tfirmata analog mapping: %u\n\n", static_cast<unsigned int>(i), static_cast<uint8_t>(device->_pin_info_cache[i].supported_modes), static_cast<uint8_t>(device->_pin_info_cache[i].analog_read_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].analog_write_resolution_bits), static_cast<uint8_t>(device->_pin_info_cache[i].reserved));
+      case firmata::I2C_REPLY:
+      { 
+        // Handle response from I²C slave device
+        i2c_transaction_t i2c_transaction;
+
+        // Reassemble transaction details
+        i2c_transaction.address_base = argv_[0];
+        i2c_transaction.header.data = argv_[1];
+
+        // Check for 10-bit address
+        if ( i2c_transaction.header.config.address_mode_10_bit ) {
+#if LOG_ERRORS
+            ::perror("ERROR: Wire::requestFrom - 10-bit addresses not supported!");
 #endif
+            reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.push_back(argv_[0]);
+            reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.push_back(argv_[1]);
+        } else {
+            /**
+             * Cache data bytes
+             *
+             * Address: argv_[0] and argv_[1]
+             * Register: argv_[2] and argv_[3]
+             *
+             * NOTE: The Wiring API only returns the data portion
+             *       of the payload, which begins at index 4
+             */
+            for ( size_t i = 4 ; (i + 1) < argc_ ; i += 2 ) {
+                uint8_t i2c_byte = argv_[i];
+                i2c_byte |= static_cast<uint8_t>((argv_[i + 1] << 7) & 0x80);
+                reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.push_back(i2c_byte);
+            }
         }
 
-        device->_refresh(device->_uponSurvey, device->_survey_context);
+        // Signal master with response size
+        reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx_mutex.lock();
+        if ( reinterpret_cast<FirmataI2c * const>(&device->Wire)->_i2c_slave_response_result ) {
+            reinterpret_cast<FirmataI2c * const>(&device->Wire)->_i2c_slave_response_result->set_value(reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.size());
+        }
+        reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx_mutex.unlock();
+
+        break;
+      }
+      case firmata::I2C_REQUEST:
+      {
+        // Handle request from I²C master device
+        i2c_transaction_t i2c_transaction;
+
+        // Reassemble transaction details
+        i2c_transaction.address_base = argv_[0];
+        i2c_transaction.header.data = argv_[1];
+
+        if ( reinterpret_cast<FirmataI2c * const>(&device->Wire)->_i2c_slave_address == i2c_transaction.address_base ) {
+            // Cache data bytes
+            for ( size_t i = 2 ; (i + 1) < argc_ ; i += 2 ) {
+                uint8_t i2c_byte = argv_[i];
+                i2c_byte |= (argv_[i + 1] << 7);
+                reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.push_back(i2c_byte);
+            }
+
+            // Call corresponding callback
+            if ( i2c_transaction.header.config.read_mode && reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onRequestHandler ) {
+                reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onRequestHandler(reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onRequestHandler_context);
+            } else if ( !i2c_transaction.header.config.read_mode && reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onReceiveHandler ) {
+                reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onReceiveHandler(reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onReceiveHandler_context, (reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.size()));
+            }
+        } else {
+#if LOG_ERRORS
+            ::perror("ERROR: Wire::request - Unrecognized I2C address!");
+#endif
+        }
         break;
       }
       case firmata::PIN_STATE_RESPONSE:

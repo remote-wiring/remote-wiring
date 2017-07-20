@@ -1,3 +1,7 @@
 add_executable(readme_sample readme_sample.cpp)
 target_link_libraries(readme_sample LINK_PUBLIC remote_wiring firmata serial_wiring pthread)
 add_dependencies(readme_sample remote_wiring firmata serial_wiring)
+
+add_executable(i2c_sample i2c_sample.cpp)
+target_link_libraries(i2c_sample LINK_PUBLIC remote_wiring firmata serial_wiring pthread)
+add_dependencies(i2c_sample remote_wiring firmata serial_wiring)

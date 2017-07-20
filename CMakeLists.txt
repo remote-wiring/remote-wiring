@@ -55,7 +55,7 @@ target_compile_options(firmata
 )
 
 # remote_wiring
-add_library(remote_wiring ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmataDevice.cpp)
+add_library(remote_wiring ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmataDevice.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmataI2c.cpp)
 add_dependencies(remote_wiring firmata serial_wiring)
 
 target_include_directories(remote_wiring

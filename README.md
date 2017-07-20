@@ -6,12 +6,13 @@ Imagine, an application developer now has the ability to interact with the real 
 
 _\*The target device must be capable of running a firmata host program \(i.e. _[_StandardFirmata.ino_](https://github.com/firmata/arduino/tree/master/examples/StandardFirmata)_\) and reachable via a _[_supported serial connection_](https://github.com/remote-wiring/serial-wiring)_._
 
-### Remote Device API \[v0.2.0\]:
+### Remote Device API \[v0.2.1\]:
 
 ###### Data types
 
 ```cpp
 typedef void (*signal_t)(void * context);
+typedef void (*wire_event_t)(void * context, size_t bytes_read);
 ```
 
 ###### Wiring interface
@@ -39,7 +40,26 @@ const char * RemoteDevice::firmware (void);
     SemVer * RemoteDevice::version (void);
 ```
 
+###### TwoWire interface
+
+```cpp
+      size_t RemoteDevice::Wire::available (void);
+        void RemoteDevice::Wire::begin (uint8_t address = 0x77);
+        void RemoteDevice::Wire::beginTransmission (uint8_t address);
+        void RemoteDevice::Wire::end (void);
+         int RemoteDevice::Wire::endTransmission (bool stop = true);
+        void RemoteDevice::Wire::flush (void);
+        void RemoteDevice::Wire::onReceive (wire_event_t handler, void * context = nullptr);
+        void RemoteDevice::Wire::onRequest (signal_t handler, void * context = nullptr);
+         int RemoteDevice::Wire::read (void);
+      size_t RemoteDevice::Wire::requestFrom (uint8_t address, size_t quantity, bool stop = true);
+        void RemoteDevice::Wire::setClock (size_t freq_Hz);
+      size_t RemoteDevice::Wire::write (uint8_t byte);
+```
+
 > See also: [Wiring interface](http://wiring.org.co/reference)
+
+> See also: [Wire Library](https://www.arduino.cc/en/Reference/Wire)
 
 ## Quick Start Guide
 

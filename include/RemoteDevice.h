@@ -11,7 +11,13 @@ namespace remote_wiring {
 /*!
  * \brief A telemorph conforming to the Wiring API
  */
-struct RemoteDevice : public Telemorph, public Wiring {};
+struct RemoteDevice : public Telemorph, public Wiring {
+    RemoteDevice (
+        TwoWire & Wire_
+    ) :
+        Wiring(Wire_)
+    { }
+};
 
 } // remote_wiring
 

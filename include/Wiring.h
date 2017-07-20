@@ -11,6 +11,7 @@
 
 #include "RwConstants.h"
 #include "RwTypes.h"
+#include "Wire.h"
 
 namespace remote_wiring {
 
@@ -21,6 +22,12 @@ namespace remote_wiring {
  */
 class Wiring {
   public:
+    Wiring (
+        TwoWire & Wire_
+    ) :
+        Wire(Wire_)
+    { }
+
     /*!
      * \brief Reads the value from the specified analog pin
      *
@@ -339,9 +346,33 @@ class Wiring {
         }
     }
 
+    /*
+     * \brief This library allows you to communicate with I2C / TWI devices
+     *
+     * The TWI protocol and interface were developed by Phillips. It is
+     * possible to connect multiple TWI devices to the TWI pins creating
+     * a network or bus of devices and communicate with them by means of
+     * an address. The TWI can be configured to act as a Master or a Slave
+     * in a network of devices. There are both 7- and 8-bit versions of
+     * I²C addresses. 7 bits identify the device, and the eighth bit
+     * determines if it's being written to or read from. The Wire library
+     * uses 7 bit addresses throughout. The addresses from 0 to 7 are not
+     * used because are reserved so the first address that can be used is 8.
+     *
+     * \note The SDA/SCL lines must be HIGH when inactive, a pull-up
+     *       resistor is needed when connecting SDA/SCL pins.
+     *
+     * \note If you have a datasheet or sample code that uses 8-bit
+     *       address, you'll want to drop the low bit (i.e. shift the
+     *       value one bit to the right), yielding an address between
+     *       0 and 127.
+     */
+    TwoWire & Wire;
+
   protected:
     ~Wiring (void) {}
 
+  private:
     virtual
     size_t
     _analogRead (
