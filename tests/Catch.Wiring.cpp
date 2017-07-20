@@ -180,7 +180,7 @@ TEST_CASE("Wiring::analogRead - Implementation not invoked when invalid argument
 
 TEST_CASE("Wiring::analogRead - Return `UINT_MAX` on pin argument error", "[Wiring::analogRead]") {
     ConcreteWiring wiring;
-    size_t actual_result = wiring.analogRead(128);
+    const size_t actual_result = wiring.analogRead(128);
     REQUIRE( UINT_MAX == actual_result );
 }
 
@@ -195,7 +195,7 @@ TEST_CASE("Wiring::analogRead - Returns value from underlying implementation", "
     ConcreteWiring wiring;
     const size_t expected_result = 889;
     wiring.analogRead_result = expected_result;
-    size_t actual_result = wiring.analogRead(0);
+    const size_t actual_result = wiring.analogRead(0);
     REQUIRE( expected_result == actual_result );
 }
 
@@ -211,7 +211,7 @@ TEST_CASE("Wiring::analogRead - Return 1024 on out of range return value from un
     ConcreteWiring wiring;
     const size_t expected_result = 1024;
     wiring.analogRead_result = 1979; // out of range result to trigger error
-    size_t actual_result = wiring.analogRead(0);
+    const size_t actual_result = wiring.analogRead(0);
     REQUIRE( expected_result == actual_result );
 }
 
@@ -319,11 +319,16 @@ TEST_CASE("Wiring::attachInterrupt - Supplies mode argument to the underlying im
 }
 
 TEST_CASE("Wiring::attachInterrupt - Supplies context argument to the underlying implementation", "[Wiring::attachInterrupt]") {
-    size_t context = 19790917;
-    void * const expected_context_arg = &context;
     ConcreteWiring wiring;
+    void * const expected_context_arg = &wiring;
     wiring.attachInterrupt(0, ::callback, wiring::LOW, expected_context_arg);
     REQUIRE( expected_context_arg == wiring.attachInterrupt_context_arg );
+}
+
+TEST_CASE("Wiring::attachInterrupt - Unspecified `context` argument, results in `nullptr` provided by default to the underlying implementation", "[Wiring::attachInterrupt]") {
+    ConcreteWiring wiring;
+    wiring.attachInterrupt(0, ::callback, wiring::LOW);
+    REQUIRE(nullptr == wiring.attachInterrupt_context_arg);
 }
 
 TEST_CASE("Wiring::attachInterrupt - Implementation not invoked when invalid argument supplied", "[Wiring::attachInterrupt]") {
@@ -410,7 +415,7 @@ TEST_CASE("Wiring::digitalRead - Implementation not invoked when invalid argumen
 TEST_CASE("Wiring::digitalRead - Return false when invalid argument supplied", "[Wiring::digitalRead]") {
     ConcreteWiring wiring;
     wiring.digitalRead_result = true;  // Set "normal" return value to `true`
-    bool actual_result = wiring.digitalRead(128);
+    const bool actual_result = wiring.digitalRead(128);
     REQUIRE( false == actual_result );
 }
 
@@ -425,7 +430,7 @@ TEST_CASE("Wiring::digitalRead - Returns value from underlying implementation", 
     ConcreteWiring wiring;
     const bool expected_result = true;
     wiring.digitalRead_result = expected_result;
-    bool actual_result = wiring.digitalRead(0);
+    const bool actual_result = wiring.digitalRead(0);
     REQUIRE( expected_result == actual_result );
 }
 

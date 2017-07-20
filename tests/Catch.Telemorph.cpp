@@ -397,14 +397,13 @@ TEST_CASE("Telemorph::samplingInterval - An `interval_ms` argument less than 1, 
     REQUIRE(EDOM == errno);
 }
 
-TEST_CASE("Telemorph::samplingInterval - An argument error shall prevent the underlying implementation from being invoked") {
+TEST_CASE("Telemorph::samplingInterval - An argument error shall prevent the underlying implementation from being invoked", "[Telemorph::samplingInterval]") {
     errno = 0;
     ConcreteTelemorph telemorph;
     telemorph.samplingInterval(0);
-    REQUIRE(EDOM == errno);
+    CHECK(EDOM == errno);
     REQUIRE(!telemorph.samplingInterval_invoked);
 }
-
 
 TEST_CASE("Telemorph::samplingInterval - Any error code returned by the underlying implementation shall result in `errno` being set to that value", "[Telemorph::samplingInterval]") {
     errno = 0;
