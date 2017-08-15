@@ -23,10 +23,10 @@ namespace remote_wiring {
 class Wiring {
   public:
     Wiring (
-        TwoWire & Wire_
-    ) :
-        Wire(Wire_)
-    { }
+        void
+    ) {
+        Wire.interface = this;
+    }
 
     /*!
      * \brief Reads the value from the specified analog pin
@@ -367,7 +367,43 @@ class Wiring {
      *       value one bit to the right), yielding an address between
      *       0 and 127.
      */
-    TwoWire & Wire;
+    class {
+        friend Wiring;
+      public:
+        /*
+         * The "dot operator" is not currently supported in C++, but is
+         * necessary to provide the expected syntax `base<T>.Wire.foo`.
+         * According to Bjarne Stroustrup, the dot operator will be
+         * supported in -std=c++20.
+         *
+         * https://isocpp.org/blog/2016/02/a-bit-of-background-for-the-operator-dot-proposal-bjarne-stroustrup
+         *
+         * inline
+         * TwoWire &
+         * operator . (
+         *     void
+         * ) {
+         *     return interface->_Wire();
+         * }
+         */
+        inline
+        operator TwoWire & (
+            void
+        ) {
+            return interface->_Wire();
+        }
+
+        inline
+        TwoWire *
+        operator & (
+            void
+        ) {
+            return &interface->_Wire();
+        }
+
+      private:
+        Wiring * interface;
+    } Wire;
 
   protected:
     ~Wiring (void) {}
@@ -419,6 +455,12 @@ class Wiring {
     _pinMode (
         size_t pin_,
         size_t mode_
+    ) = 0;
+
+    virtual
+    TwoWire &
+    _Wire (
+        void
     ) = 0;
 };
 

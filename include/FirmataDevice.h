@@ -52,6 +52,10 @@ class FirmataDevice : public RemoteDevice {
         void
     );
 
+    //TODO: Remove when C++ supports overriding `operator .` (-std=c++20),
+    //      and inherit member from Wiring<C> via static polymorphism.
+    TwoWire & Wire;
+
   private:
     void * _attach_context;
     FirmataI2c _firmata_i2c;
@@ -159,6 +163,11 @@ class FirmataDevice : public RemoteDevice {
 
     const SemVer *
     _version (
+        void
+    ) override;
+
+    TwoWire &
+    _Wire (
         void
     ) override;
 

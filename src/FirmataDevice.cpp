@@ -20,7 +20,7 @@ FirmataDevice::FirmataDevice (
     Stream & stream_,
     bool jit_input_
 ) :
-    RemoteDevice(_firmata_i2c),
+    Wire(_firmata_i2c),  //TODO: Remove when C++ supports overriding `operator .` (-std=c++20)
     _attach_context(nullptr),
     _firmata_i2c(stream_),
     _firmware_name(nullptr),
@@ -406,6 +406,13 @@ FirmataDevice::_version (
     void
 ) {
     return &_firmware_semantic_version;
+}
+
+TwoWire &
+FirmataDevice::_Wire (
+    void
+) {
+    return _firmata_i2c;
 }
 
 void

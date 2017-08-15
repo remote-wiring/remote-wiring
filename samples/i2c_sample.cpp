@@ -28,12 +28,10 @@ void baseFunc (remote_wiring::Wiring & board) {
     remote_wiring::TwoWire & Wire = board.Wire;
     Wire.beginTransmission(55);
     Wire.write('h');
+    Wire.write('e');
 
-    // Dot syntax
-    board.Wire.write('e');
-    board.Wire.write('l');
-    
     // Pointer syntax
+    (&board.Wire)->write('l');
     (&board.Wire)->write('l');
     (&board.Wire)->write('o');
 
@@ -52,12 +50,10 @@ void deviceFunc (remote_wiring::RemoteDevice & board) {
     remote_wiring::TwoWire & Wire = board.Wire;
     Wire.beginTransmission(55);
     Wire.write('h');
+    Wire.write('e');
 
-    // Dot syntax
-    board.Wire.write('e');
-    board.Wire.write('l');
-    
     // Pointer syntax
+    (&board.Wire)->write('l');
     (&board.Wire)->write('l');
     (&board.Wire)->write('o');
 

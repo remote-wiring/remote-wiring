@@ -49,11 +49,12 @@ class ConcreteWiring : public Wiring {
     size_t pinMode_mode_arg;
     size_t pinMode_pin_arg;
     int pinMode_result;
+    bool Wire_invoked;
+    TwoWire * Wire_result;
 
     ConcreteWiring (
         void
     ) :
-        Wiring(*reinterpret_cast<TwoWire *>(0xBAD12C)),
         analogRead_invoked(false),
         analogRead_pin_arg(UINT_MAX),
         analogRead_result(0),
@@ -80,7 +81,9 @@ class ConcreteWiring : public Wiring {
         pinMode_invoked(false),
         pinMode_mode_arg(UINT_MAX),
         pinMode_pin_arg(UINT_MAX),
-        pinMode_result(0)
+        pinMode_result(0),
+        Wire_invoked(false),
+        Wire_result(nullptr)
     {}
 
   private:
@@ -157,6 +160,14 @@ class ConcreteWiring : public Wiring {
         pinMode_mode_arg = mode_;
         pinMode_pin_arg = pin_;
         return pinMode_result;
+    }
+
+    TwoWire &
+    _Wire (
+        void
+    ) override {
+        Wire_invoked = true;
+        return *Wire_result;
     }
 };
 
@@ -536,6 +547,20 @@ TEST_CASE("Wiring::pinMode - If no errors occur during execution, any previous `
     ConcreteWiring wiring;
     wiring.pinMode(0, wiring::OUTPUT);
     REQUIRE( ENOTTY == errno );
+}
+
+TEST_CASE("Wiring::Wire - Invokes underlying implementation", "[Wiring::Wire]") {
+    ConcreteWiring wiring;
+    TwoWire & Wire = wiring.Wire;
+    REQUIRE( true == wiring.Wire_invoked );
+}
+
+TEST_CASE("Wiring::Wire - Returns value from underlying implementation", "[Wiring::Wire]") {
+    ConcreteWiring wiring;
+    TwoWire * const expected_result = reinterpret_cast<TwoWire * const>(0xDEAD12C);
+    wiring.Wire_result = expected_result;
+    TwoWire * const actual_result = &wiring.Wire;
+    REQUIRE( expected_result == actual_result );
 }
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */
