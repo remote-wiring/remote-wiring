@@ -604,6 +604,29 @@ static const size_t LED_BUILTIN = 2;
 }  // namespace esp8266
 
 namespace particle {
+namespace bluz {
+
+static const size_t A0 = 10;
+static const size_t A1 = 11;
+static const size_t A2 = 12;
+static const size_t A3 = 13;
+static const size_t A4 = 14;
+static const size_t A5 = 15;
+static const size_t A6 = 16;
+static const size_t A7 = 17;
+
+static const size_t SS = 12;
+static const size_t MOSI = 15;
+static const size_t MISO = 14;
+static const size_t SCK = 13;
+
+static const size_t SDA = 0;
+static const size_t SCL = 1;
+
+static const size_t LED_BUILTIN = 7;
+
+}  // namespace bluz
+
 namespace core {
 
 static const size_t A0 = 10;
@@ -672,6 +695,31 @@ static const size_t SCL = 1;
 static const size_t LED_BUILTIN = 7;
 
 }  // namespace photon
+
+namespace redbear {
+namespace duo {
+
+static const size_t A0 = 10;
+static const size_t A1 = 11;
+static const size_t A2 = 12;
+static const size_t A3 = 13;
+static const size_t A4 = 14;
+static const size_t A5 = 15;
+static const size_t A6 = 16;
+static const size_t A7 = 17;
+
+static const size_t SS = 12;
+static const size_t MOSI = 15;
+static const size_t MISO = 14;
+static const size_t SCK = 13;
+
+static const size_t SDA = 0;
+static const size_t SCL = 1;
+
+static const size_t LED_BUILTIN = 7;
+
+}  // namespace duo
+}  // namespace redbear
 }  // namespace particle
 }  // namespace boards
 }  // namespace remote_wiring

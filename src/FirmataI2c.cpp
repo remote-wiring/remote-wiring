@@ -18,7 +18,7 @@ FirmataI2c::FirmataI2c (
 ) :
     _i2c_slave_address(0x00),
     _i2c_slave_response_result(nullptr),
-    _i2c_transaction{0, 0, {0, 0, 0, 0, 0}},
+    _i2c_transaction{0, 0, {{0, 0, 0, 0, 0}}},
     _onReceiveHandler(nullptr),
     _onReceiveHandler_context(nullptr),
     _onRequestHandler(nullptr),
@@ -121,7 +121,7 @@ int
 FirmataI2c::_flush (
     void
 ) {
-    int result; 
+    int result;
 
     // Check for slave mode
     if ( 0x77 == _i2c_slave_address ) {

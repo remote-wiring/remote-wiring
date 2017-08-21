@@ -2,6 +2,7 @@
 
 #include "FirmataDevice.h"
 
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 
@@ -46,9 +47,15 @@ FirmataDevice::FirmataDevice (
 
     // Configure the Firmata parser
     if ( nullptr == (_parser_buffer = new uint8_t[firmata::MAX_DATA_BYTES]) ) {
+        errno = ENOMEM;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::FirmataDevice - Unable to allocate parser buffer!");
+#endif
     } else if ( 0 != _parser.setDataBufferOfSize(_parser_buffer, firmata::MAX_DATA_BYTES) ) {
+        errno = EACCES;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::FirmataDevice - Unable to update parser buffer!");
+#endif
     } else {
         // Update state
         _parser_buffer_size = firmata::MAX_DATA_BYTES;
@@ -79,15 +86,23 @@ FirmataDevice::_analogRead (
 ) {
     size_t result;
 
-    if ( !_pin_info_cache && (0 != updateStorageForPin(pin_)) ) {
-        result = (size_t)-1;
+    if ( !_pin_info_cache && updateStorageForPin(pin_) ) {
+        result = static_cast<size_t>(UINT_MAX);
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::analogRead - Unable to allocate storage for pin!");
+#endif
     } else if ( pin_ >= _pin_count ) {
-        result = (size_t)-1;
+        result = static_cast<size_t>(UINT_MAX);
+        errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::analogRead - Pin out of bounds!");
+#endif
     } else if ( _pin_info_cache && ! _pin_info_cache[pin_].analogReadAvailable() ) {
-        result = (size_t)-1;
+        result = static_cast<size_t>(UINT_MAX);
+        errno = EOPNOTSUPP;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::analogRead - Pin incapable of analog read functionality!");
+#endif
     } else if ( ANALOG_READ != _pin_state_cache[pin_].mode ) {
         //TODO: Block until callback is fired for pin_, and return valid result
         result = DATA_NOT_AVAILABLE_ANALOG;
@@ -107,20 +122,31 @@ FirmataDevice::_analogWrite (
     const size_t pin_,
     const size_t value_
 ) {
+    int error;
+
     if ( pin_ >= _pin_count ) {
+        error = errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::analogWrite - Pin out of bounds!");
+#endif
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].analogWriteAvailable() ) {
+        error = errno = EOPNOTSUPP;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::analogWrite - Pin incapable of analog write functionality!");
+#endif
     } else if ( ANALOG_WRITE != _pin_state_cache[pin_].mode ) {
+        error = 0;
         _pin_state_cache[pin_].mode = ANALOG_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PWM);
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     } else {
+        error = 0;
         _marshaller.sendAnalog(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     }
-    return 0;
+
+    return error;
 }
 
 int
@@ -149,19 +175,30 @@ FirmataDevice::_attachInterrupt (
     size_t mode_,
     void * context_
 ) {
+    int error;
+
     if ( pin_ >= _pin_count ) {
+        error = errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::attachInterrupt - Pin out of bounds!");
+#endif
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].digitalReadAvailable() ) {
+        error = errno = EOPNOTSUPP;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::attachInterrupt - Pin incapable of digital read functionality!");
-    } else if ( updateInterruptStorageForPin(pin_) ) {
+#endif
+    } else if ( 0 != (error = updateStorageForPinInterrupt(pin_)) ) {
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::attachInterrupt - Unable to allocate storage for interrupt!");
+#endif
     } else {
         // Store the interrupt parameters
         _pin_isr_cache[pin_].context = context_;
         _pin_isr_cache[pin_].isr = isr_;
         _pin_isr_cache[pin_].mode = mode_;
     }
-    return 0;
+
+    return error;
 }
 
 int
@@ -178,15 +215,23 @@ int
 FirmataDevice::_detachInterrupt (
     size_t pin_
 ) {
+    int error;
+
     if ( pin_ >= _pin_isr_count ) {
+        error = errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::detachInterrupt - Pin out of bounds!");
+#endif
     } else {
+        error = 0;
+
         // Clear the interrupt parameters
         _pin_isr_cache[pin_].context = nullptr;
         _pin_isr_cache[pin_].isr = nullptr;
         _pin_isr_cache[pin_].mode = wiring::LOW;
     }
-    return 0;
+
+    return error;
 }
 
 bool
@@ -197,14 +242,23 @@ FirmataDevice::_digitalRead (
 
     if ( pin_ >= _pin_count ) {
         result = false;
+        errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalRead - Pin out of bounds!");
+#endif
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].digitalReadAvailable() ) {
         result = false;
+        errno = EOPNOTSUPP;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalRead - Pin incapable of digital read functionality!");
+#endif
     } else if ( DIGITAL_READ != _pin_state_cache[pin_].mode
       && DIGITAL_READ_WITH_PULLUP != _pin_state_cache[pin_].mode ) {
         result = false;
+        errno = EPERM;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalRead - Pin mode not set for digital read!");
+#endif
     } else {
         result = _pin_state_cache[pin_].value;
     }
@@ -217,22 +271,36 @@ FirmataDevice::_digitalWrite (
     const size_t pin_,
     const bool value_
 ) {
+    int error;
+
     if ( pin_ >= _pin_count ) {
+        error = errno = ENXIO;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalWrite - Pin out of bounds!");
+#endif
     } else if ( _pin_info_cache && !_pin_info_cache[pin_].digitalWriteAvailable() ) {
+        error = errno = EOPNOTSUPP;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalWrite - Pin incapable of digital write functionality!");
+#endif
     } else if ( PIN_MODE_UNSPECIFIED == _pin_state_cache[pin_].mode ) {
+        error = 0;
         _pin_state_cache[pin_].mode = DIGITAL_WRITE;
         _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_OUTPUT);
         _marshaller.sendDigital(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     } else if ( DIGITAL_WRITE != _pin_state_cache[pin_].mode ) {
+        error = errno = EPERM;
+#ifdef LOG_ERRORS
         ::perror("FirmataDevice::digitalWrite - Pin not set to output!");
+#endif
     } else {
+        error = 0;
         _marshaller.sendDigital(static_cast<uint8_t>(pin_), value_);
         _stream.flush();
     }
-    return 0;
+
+    return error;
 }
 
 const char *
@@ -247,12 +315,16 @@ FirmataDevice::_pinMode (
     const size_t pin_,
     const size_t mode_
 ) {
+    int error;
     int firmata_mode;
 
     if ( _pin_info_cache ) {
         if ( pin_ >= _pin_count ) {
             firmata_mode = firmata::PIN_MODE_IGNORE;
+            error = errno = ENXIO;
+#ifdef LOG_ERRORS
             ::perror("FirmataDevice::pinMode - Pin out of bounds!");
+#endif
         } else {
             switch (mode_) {
               case wiring::OUTPUT:
@@ -263,15 +335,21 @@ FirmataDevice::_pinMode (
                     // corresponding API is called, and update mode at that time.
                     _pin_state_cache[pin_].mode = PIN_MODE_UNSPECIFIED;
                     firmata_mode = firmata::PIN_MODE_IGNORE;
+                    error = 0;
                 } else if ( _pin_info_cache[pin_].analogWriteAvailable() ) {
                     _pin_state_cache[pin_].mode = ANALOG_WRITE;
                     firmata_mode = firmata::PIN_MODE_PWM;
+                    error = 0;
                 } else if ( _pin_info_cache[pin_].digitalWriteAvailable() ) {
                     _pin_state_cache[pin_].mode = DIGITAL_WRITE;
                     firmata_mode = firmata::PIN_MODE_OUTPUT;
+                    error = 0;
                 } else {
                     firmata_mode = firmata::PIN_MODE_IGNORE;
+                    error = errno = EPERM;
+#ifdef LOG_ERRORS
                     ::perror("FirmataDevice::pinMode - Pin incapable of output.");
+#endif
                 }
                 break;
               case wiring::INPUT:
@@ -280,8 +358,12 @@ FirmataDevice::_pinMode (
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_INPUT);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
                     _stream.flush();
+                    error = 0;
                 } else {
+                    error = errno = EPERM;
+#ifdef LOG_ERRORS
                     ::perror("FirmataDevice::pinMode - Pin incapable of input.");
+#endif
                 }
                 firmata_mode = firmata::PIN_MODE_IGNORE;
                 break;
@@ -291,20 +373,30 @@ FirmataDevice::_pinMode (
                     _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata::PIN_MODE_PULLUP);
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
                     _stream.flush();
+                    error = 0;
                 } else {
+                    error = errno = EPERM;
+#ifdef LOG_ERRORS
                     ::perror("FirmataDevice::pinMode - Pin not configured with pull-up resistor.");
+#endif
                 }
                 firmata_mode = firmata::PIN_MODE_IGNORE;
                 break;
               default:
                 firmata_mode = firmata::PIN_MODE_IGNORE;
+                error = errno = EINVAL;
+#ifdef LOG_ERRORS
                 ::perror("FirmataDevice::pinMode - Unrecognized mode sent to device!");
+#endif
             }
         }
     } else {
         if ( 0 != updateStorageForPin(pin_) ) {
             firmata_mode = firmata::PIN_MODE_IGNORE;
+            error = errno = ENOMEM;
+#ifdef LOG_ERRORS
             ::perror("FirmataDevice::pinMode - Unable to allocate storage for pin!");
+#endif
         } else {
             switch (mode_) {
               case wiring::OUTPUT:
@@ -313,6 +405,7 @@ FirmataDevice::_pinMode (
                 // corresponding API is called, and update mode at that time.
                 _pin_state_cache[pin_].mode = PIN_MODE_UNSPECIFIED;
                 firmata_mode = firmata::PIN_MODE_IGNORE;
+                error = 0;
                 break;
               case wiring::INPUT:
                 _pin_state_cache[pin_].mode = DIGITAL_READ;
@@ -320,6 +413,7 @@ FirmataDevice::_pinMode (
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
                     _stream.flush();
                     firmata_mode = firmata::PIN_MODE_IGNORE;
+                    error = 0;
                 break;
               case wiring::INPUT_PULLUP:
                 _pin_state_cache[pin_].mode = DIGITAL_READ_WITH_PULLUP;
@@ -327,17 +421,21 @@ FirmataDevice::_pinMode (
                     _marshaller.reportDigitalPortEnable(pin_ / 8);
                     _stream.flush();
                     firmata_mode = firmata::PIN_MODE_IGNORE;
+                    error = 0;
                 break;
               default:
                 firmata_mode = firmata::PIN_MODE_IGNORE;
+                error = errno = EINVAL;
+#ifdef LOG_ERRORS
                 ::perror("FirmataDevice::pinMode - Unrecognized mode sent to device!");
+#endif
             }
         }
     }
 
     // Always send, even when desired mode equals the cached mode, to account for transmission failure
     if ( firmata::PIN_MODE_IGNORE != firmata_mode ) { _marshaller.sendPinMode(static_cast<uint8_t>(pin_), firmata_mode); _stream.flush(); }
-    return 0;
+    return error;
 }
 
 int
@@ -606,7 +704,7 @@ FirmataDevice::sysexCallback (
         break;
       }
       case firmata::I2C_REPLY:
-      { 
+      {
         // Handle response from I²C slave device
         i2c_transaction_t i2c_transaction;
 
@@ -616,7 +714,8 @@ FirmataDevice::sysexCallback (
 
         // Check for 10-bit address
         if ( i2c_transaction.header.config.address_mode_10_bit ) {
-#if LOG_ERRORS
+            errno = EFAULT;
+#ifdef LOG_ERRORS
             ::perror("ERROR: Wire::requestFrom - 10-bit addresses not supported!");
 #endif
             reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.push_back(argv_[0]);
@@ -671,7 +770,8 @@ FirmataDevice::sysexCallback (
                 reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onReceiveHandler(reinterpret_cast<FirmataI2c * const>(&device->Wire)->_onReceiveHandler_context, (reinterpret_cast<FirmataI2c * const>(&device->Wire)->_rx.size()));
             }
         } else {
-#if LOG_ERRORS
+            errno = ENXIO;
+#ifdef LOG_ERRORS
             ::perror("ERROR: Wire::request - Unrecognized I2C address!");
 #endif
         }
@@ -681,9 +781,15 @@ FirmataDevice::sysexCallback (
       {
         // Parse pin state response into WiringPinState
         if ( 3 > argc_ ) {
+            errno = EILSEQ;
+#ifdef LOG_ERRORS
             ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Parsed data is malformed!");
+#endif
         } else if ( argv_[0] > device->_pin_count ) {
+            errno = ENXIO;
+#ifdef LOG_ERRORS
             ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Pin number is out of bounds!");
+#endif
         } else {
             switch (argv_[1]) {
               case firmata::PIN_MODE_ANALOG:
@@ -723,7 +829,10 @@ FirmataDevice::sysexCallback (
                 device->_pin_state_cache[argv_[0]].mode = ANALOG_WRITE;
                 break;
               default:
+                errno = EINVAL;
+#ifdef LOG_ERRORS
                 ::perror("FirmataDevice::sysexCallback - PIN_STATE_RESPONSE - Unexpected mode encountered!");
+#endif
                 device->_pin_state_cache[argv_[0]].mode = PIN_MODE_UNSPECIFIED;
             }
 
@@ -749,6 +858,48 @@ FirmataDevice::sysexCallback (
       }
       default: break;
     }
+}
+
+int
+FirmataDevice::updateStorageForPin (
+    const size_t pin_
+) {
+    int error;
+
+    if (pin_ < _pin_count) {
+        error = 0;
+    } else if ( nullptr == (_pin_state_cache = (WiringPinState *)realloc(_pin_state_cache, ((pin_ + 1) * sizeof(WiringPinState)))) ) {
+        error = errno = ENOMEM;
+#ifdef LOG_ERRORS
+        ::perror("FirmataDevice::updateStorageForPinInterrupt - Unable to allocate pin cache!");
+#endif
+    } else {
+        error = 0;
+        _pin_count = (pin_ + 1);
+    }
+
+    return error;
+}
+
+int
+FirmataDevice::updateStorageForPinInterrupt (
+    const size_t pin_
+) {
+    int error;
+
+    if (pin_ < _pin_isr_count) {
+        error = 0;
+    } else if ( nullptr == (_pin_isr_cache = (WiringPinInterrupt *)realloc(_pin_isr_cache, ((pin_ + 1) * sizeof(WiringPinInterrupt)))) ) {
+        error = errno = ENOMEM;
+#ifdef LOG_ERRORS
+        ::perror("FirmataDevice::updateStorageForPinInterrupt - Unable to allocate interrupt pin cache!");
+#endif
+    } else {
+        error = 0;
+        _pin_isr_count = (pin_ + 1);
+    }
+    
+    return error;
 }
 
 /* Created and copyrighted by Zachary J. Fields. Offered as open source under the MIT License (MIT). */

@@ -219,37 +219,15 @@ class FirmataDevice : public RemoteDevice {
 
     inline
     int
-    updateInterruptStorageForPin (
+    updateStorageForPin (
         const size_t pin_
-    ) {
-        int error;
-        if (pin_ < _pin_isr_count) {
-            error = 0;
-        } else if ( nullptr == (_pin_isr_cache = (WiringPinInterrupt *)realloc(_pin_isr_cache, ((pin_ + 1) * sizeof(WiringPinInterrupt)))) ) {
-            error = __LINE__;
-        } else {
-            error = 0;
-            _pin_isr_count = (pin_ + 1);
-        }
-        return error;
-    }
+    );
 
     inline
     int
-    updateStorageForPin (
+    updateStorageForPinInterrupt (
         const size_t pin_
-    ) {
-        int error;
-        if (pin_ < _pin_count) {
-            error = 0;
-        } else if ( nullptr == (_pin_state_cache = (WiringPinState *)realloc(_pin_state_cache, ((pin_ + 1) * sizeof(WiringPinState)))) ) {
-            error = __LINE__;
-        } else {
-            error = 0;
-            _pin_count = (pin_ + 1);
-        }
-        return error;
-    }
+    );
 };
 
 } // namespace remote_wiring
